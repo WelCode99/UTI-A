@@ -1,0 +1,5 @@
+{
+  "name": "UTI.AI - Sistema Inteligente de Cuidados Intensivos",
+  "description": "Sistema integrado para manejo completo do paciente crítico, incluindo: dashboard avançado, calculadoras de scores clínicos, análise de parâmetros ventilatórios, protocolos SMART-SED de sedação/analgesia, e insights de IA especializada para apoio à decisão clínica.",
+  "requestFramePermissions": []
+}

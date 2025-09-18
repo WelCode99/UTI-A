@@ -1,0 +1,234 @@
+// UTI.AI Service Worker
+const CACHE_NAME = 'uti-ai-unified-v1';
+const OFFLINE_URL = '/offline.html';
+
+// Recursos essenciais para cache
+const urlsToCache = [
+  '/',
+  '/static/js/bundle.js',
+  '/static/css/main.css',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
+  OFFLINE_URL
+];
+
+// Instalação do Service Worker
+self.addEventListener('install', (event) => {
+  console.log('[SW] Instalando Service Worker');
+  
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('[SW] Cache aberto');
+        return cache.addAll(urlsToCache);
+      })
+      .catch((error) => {
+        console.error('[SW] Erro ao abrir cache:', error);
+      })
+  );
+  
+  // Força a ativação imediata
+  self.skipWaiting();
+});
+
+// Ativação do Service Worker
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Ativando Service Worker');
+  
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Removendo cache antigo:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  
+  // Assume controle imediato de todas as páginas
+  self.clients.claim();
+});
+
+// Interceptação de requests (estratégia cache-first para recursos estáticos)
+self.addEventListener('fetch', (event) => {
+  // Só intercepta requests GET
+  if (event.request.method !== 'GET') return;
+  
+  // Estratégia diferente para API vs recursos estáticos
+  if (event.request.url.includes('/api/')) {
+    // Para APIs: Network First (dados sempre atualizados)
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Se sucesso, clona e guarda no cache
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseClone);
+              });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Se network falhar, tenta cache
+          return caches.match(event.request)
+            .then((cachedResponse) => {
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              // Se não tem no cache, retorna erro
+              return new Response('Sem conexão', {
+                status: 503,
+                statusText: 'Service Unavailable'
+              });
+            });
+        })
+    );
+  } else {
+    // Para recursos estáticos: Cache First
+    event.respondWith(
+      caches.match(event.request)
+        .then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          
+          return fetch(event.request)
+            .then((response) => {
+              // Se não é uma resposta válida, não cacheia
+              if (!response || response.status !== 200 || response.type !== 'basic') {
+                return response;
+              }
+              
+              // Clona a resposta
+              const responseToCache = response.clone();
+              
+              caches.open(CACHE_NAME)
+                .then((cache) => {
+                  cache.put(event.request, responseToCache);
+                });
+              
+              return response;
+            })
+            .catch(() => {
+              // Se é navegação, retorna página offline
+              if (event.request.destination === 'document') {
+                return caches.match(OFFLINE_URL);
+              }
+              
+              // Para outros recursos, retorna erro
+              return new Response('Recurso não disponível offline', {
+                status: 503,
+                statusText: 'Service Unavailable'
+              });
+            });
+        })
+    );
+  }
+});
+
+// Notificações push
+self.addEventListener('push', (event) => {
+  console.log('[SW] Push recebido:', event);
+  
+  const options = {
+    body: event.data ? event.data.text() : 'Nova notificação do SMART-SED UTI',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    vibrate: [200, 100, 200],
+    tag: 'smart-sed-notification',
+    actions: [
+      {
+        action: 'open',
+        title: 'Abrir App',
+        icon: '/icon-192.png'
+      },
+      {
+        action: 'close',
+        title: 'Fechar',
+        icon: '/icon-192.png'
+      }
+    ],
+    data: {
+      url: '/'
+    }
+  };
+  
+  event.waitUntil(
+    self.registration.showNotification('SMART-SED UTI', options)
+  );
+});
+
+// Clique em notificações
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] Clique na notificação:', event);
+  
+  event.notification.close();
+  
+  if (event.action === 'close') {
+    return;
+  }
+  
+  // Abre ou foca na aba do app
+  event.waitUntil(
+    clients.openWindow(event.notification.data?.url || '/')
+  );
+});
+
+// Background sync para dados offline
+self.addEventListener('sync', (event) => {
+  console.log('[SW] Background sync:', event.tag);
+  
+  if (event.tag === 'background-sync-medical-data') {
+    event.waitUntil(syncMedicalData());
+  }
+});
+
+// Função para sincronizar dados médicos
+async function syncMedicalData() {
+  try {
+    console.log('[SW] Iniciando sincronização de dados médicos');
+    
+    // Aqui você poderia sincronizar dados locais com servidor
+    // Por enquanto, apenas log
+    
+    // Exemplo de como recuperar dados do localStorage
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'SYNC_COMPLETE',
+        message: 'Dados médicos sincronizados com sucesso'
+      });
+    });
+    
+  } catch (error) {
+    console.error('[SW] Erro na sincronização:', error);
+  }
+}
+
+// Message handler para comunicação com a aplicação
+self.addEventListener('message', (event) => {
+  console.log('[SW] Mensagem recebida:', event.data);
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'REQUEST_SYNC') {
+    self.registration.sync.register('background-sync-medical-data');
+  }
+});
+
+// Periodic sync (se suportado)
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'periodic-medical-sync') {
+    event.waitUntil(syncMedicalData());
+  }
+});
+
+console.log('[SW] Service Worker carregado');

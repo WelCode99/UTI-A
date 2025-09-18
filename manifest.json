@@ -1,0 +1,48 @@
+{
+  "name": "UTI.AI - Sistema Inteligente de Cuidados Intensivos",
+  "short_name": "UTI.AI",
+  "description": "Sistema integrado para manejo do paciente crítico com IA especializada, protocolos de sedação/analgesia e análise clínica avançada",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1419",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "pt-BR",
+  "categories": ["medical", "healthcare", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-tablet.png",
+      "sizes": "1024x768",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "features": [
+    "offline-support",
+    "push-notifications",
+    "background-sync"
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

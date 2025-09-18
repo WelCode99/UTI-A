@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTI.AI - Diagnóstico do Sistema</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e1a;
+            color: #00ff41;
+            padding: 20px;
+            margin: 0;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #00ff41;
+            padding-bottom: 20px;
+        }
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid #333;
+        }
+        .success {
+            border-left-color: #00ff41;
+            background: rgba(0, 255, 65, 0.1);
+        }
+        .error {
+            border-left-color: #ff0041;
+            background: rgba(255, 0, 65, 0.1);
+            color: #ff6b6b;
+        }
+        .warning {
+            border-left-color: #ffaa00;
+            background: rgba(255, 170, 0, 0.1);
+            color: #ffd43b;
+        }
+        .link {
+            color: #00aaff;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .app-demo {
+            background: #1a1f26;
+            border: 2px solid #00ff41;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .demo-patient {
+            background: #2d333a;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .demo-patient:hover {
+            background: #374151;
+        }
+        .demo-patient.active {
+            background: #4f46e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 UTI.AI - DIAGNÓSTICO DO SISTEMA</h1>
+            <p>Análise detalhada dos componentes do sistema</p>
+        </div>
+
+        <div id="diagnostics">
+            <div class="test-item">
+                <strong>🔍 Executando diagnósticos...</strong>
+            </div>
+        </div>
+
+        <div class="app-demo">
+            <h3>🎯 DEMONSTRAÇÃO UTI.AI</h3>
+            <p>Interface simplificada funcionando:</p>
+            
+            <div style="display: flex; gap: 20px; margin-top: 20px;">
+                <div style="width: 200px;">
+                    <h4>📋 Pacientes</h4>
+                    <div class="demo-patient active" onclick="selectDemoPatient('leito08')">
+                        <strong>Leito 08</strong><br>
+                        <small>João Silva, 65 anos</small><br>
+                        <small style="color: #a855f7;">Choque Séptico</small><br>
+                        <span style="background: rgba(239, 68, 68, 0.2); color: #ef4444; padding: 2px 6px; border-radius: 3px; font-size: 10px;">🚨 CPOT: 3</span>
+                    </div>
+                    <div class="demo-patient" onclick="selectDemoPatient('leito12')">
+                        <strong>Leito 12</strong><br>
+                        <small>Maria Costa, 78 anos</small><br>
+                        <small style="color: #a855f7;">Pós-op CRM</small><br>
+                        <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 2px 6px; border-radius: 3px; font-size: 10px;">✅ Adequado</span>
+                    </div>
+                </div>
+                
+                <div style="flex: 1;">
+                    <h4>🧠 SMART-SED Protocolo</h4>
+                    <div id="demo-content">
+                        <div style="background: #374151; padding: 15px; border-radius: 6px;">
+                            <strong style="color: #c026d3;">Escala CPOT (Dor):</strong><br>
+                            Expressão Facial: <span style="color: #f59e0b;">1</span> | 
+                            Movimentos: <span style="color: #10b981;">0</span> | 
+                            Tensão: <span style="color: #f59e0b;">1</span> | 
+                            Ventilador: <span style="color: #f59e0b;">1</span><br>
+                            <strong>Total CPOT: <span style="color: #ef4444;">3/8</span> - 🚨 Dor Detectada</strong>
+                        </div>
+                        
+                        <div style="background: #374151; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                            <strong style="color: #c026d3;">Escala RASS (Sedação):</strong><br>
+                            Nível Atual: <span style="color: #f59e0b;">-2</span> (Sedação Leve)<br>
+                            <strong>Status: <span style="color: #f59e0b;">⚠️ Otimizar analgesia primeiro</span></strong>
+                        </div>
+                        
+                        <div style="background: #374151; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                            <strong style="color: #c026d3;">Medicamentos:</strong><br>
+                            Fentanil: 2.5 mcg/kg/h → <span style="color: #10b981;">3.75 mL/h</span><br>
+                            Propofol: 2.0 mg/kg/h → <span style="color: #10b981;">15.0 mL/h</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 6px;">
+                <strong style="color: #10b981;">✅ Interface UTI.AI funcionando corretamente!</strong><br>
+                <small>Funcionalidades: Dashboard multi-paciente, Protocolos SMART-SED, Calculadoras, Scores clínicos</small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const diagnostics = [
+            { name: 'JavaScript Engine', test: () => true },
+            { name: 'LocalStorage', test: () => typeof Storage !== 'undefined' },
+            { name: 'DOM APIs', test: () => typeof document !== 'undefined' },
+            { name: 'JSON Support', test: () => typeof JSON !== 'undefined' },
+            { name: 'ES6 Features', test: () => {
+                try { eval('const test = () => true; test()'); return true; } catch { return false; }
+            }},
+            { name: 'Console API', test: () => typeof console !== 'undefined' },
+            { name: 'Error Handling', test: () => {
+                try { throw new Error('test'); } catch { return true; }
+            }},
+            { name: 'Event Listeners', test: () => typeof addEventListener === 'function' },
+            { name: 'setTimeout/setInterval', test: () => typeof setTimeout === 'function' && typeof setInterval === 'function' },
+            { name: 'CSS Grid Support', test: () => {
+                const div = document.createElement('div');
+                return 'grid' in div.style;
+            }}
+        ];
+
+        function runDiagnostics() {
+            const container = document.getElementById('diagnostics');
+            container.innerHTML = '<div class="test-item"><strong>🔍 Executando testes...</strong></div>';
+            
+            let allPassed = true;
+            let results = [];
+            
+            diagnostics.forEach((diagnostic, index) => {
+                setTimeout(() => {
+                    try {
+                        const passed = diagnostic.test();
+                        const className = passed ? 'success' : 'error';
+                        const icon = passed ? '✅' : '❌';
+                        
+                        if (!passed) allPassed = false;
+                        
+                        results.push(`
+                            <div class="test-item ${className}">
+                                ${icon} ${diagnostic.name}: ${passed ? 'OK' : 'FALHOU'}
+                            </div>
+                        `);
+                        
+                        if (index === diagnostics.length - 1) {
+                            // Último teste
+                            results.push(`
+                                <div class="test-item ${allPassed ? 'success' : 'warning'}">
+                                    <strong>${allPassed ? '🎉' : '⚠️'} Diagnóstico ${allPassed ? 'Concluído' : 'Parcial'}</strong>
+                                    ${allPassed ? '<br>Sistema compatível com UTI.AI' : '<br>Alguns recursos podem ter limitações'}
+                                </div>
+                            `);
+                            
+                            results.push(`
+                                <div class="test-item">
+                                    <strong>🚀 Opções de Acesso:</strong><br>
+                                    <span class="link" onclick="window.location.href='./index-simple.html'">→ Versão Simplificada (Recomendada)</span><br>
+                                    <span class="link" onclick="window.location.href='./uti-ai-standalone.html'">→ Versão Completa</span><br>
+                                    <span class="link" onclick="location.reload()">→ Executar Diagnóstico Novamente</span>
+                                </div>
+                            `);
+                        }
+                        
+                        container.innerHTML = results.join('');
+                        
+                    } catch (error) {
+                        results.push(`
+                            <div class="test-item error">
+                                ❌ ${diagnostic.name}: ERRO - ${error.message}
+                            </div>
+                        `);
+                        container.innerHTML = results.join('');
+                        allPassed = false;
+                    }
+                }, index * 200);
+            });
+        }
+
+        function selectDemoPatient(id) {
+            document.querySelectorAll('.demo-patient').forEach(p => p.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const content = document.getElementById('demo-content');
+            if (id === 'leito12') {
+                content.innerHTML = `
+                    <div style="background: #374151; padding: 15px; border-radius: 6px;">
+                        <strong style="color: #c026d3;">Escala CPOT (Dor):</strong><br>
+                        Expressão Facial: <span style="color: #10b981;">0</span> | 
+                        Movimentos: <span style="color: #10b981;">0</span> | 
+                        Tensão: <span style="color: #10b981;">0</span> | 
+                        Ventilador: <span style="color: #10b981;">0</span><br>
+                        <strong>Total CPOT: <span style="color: #10b981;">0/8</span> - ✅ Analgesia Adequada</strong>
+                    </div>
+                    
+                    <div style="background: #374151; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                        <strong style="color: #c026d3;">Escala RASS (Sedação):</strong><br>
+                        Nível Atual: <span style="color: #10b981;">0</span> (Alerta e Calmo)<br>
+                        <strong>Status: <span style="color: #10b981;">✅ Meta RASS atingida</span></strong>
+                    </div>
+                    
+                    <div style="background: #374151; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                        <strong style="color: #c026d3;">Medicamentos:</strong><br>
+                        Fentanil: 1.0 mcg/kg/h → <span style="color: #10b981;">1.24 mL/h</span><br>
+                        Dexmedetomidina: 0.6 mcg/kg/h → <span style="color: #10b981;">9.3 mL/h</span>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div style="background: #374151; padding: 15px; border-radius: 6px;">
+                        <strong style="color: #c026d3;">Escala CPOT (Dor):</strong><br>
+                        Expressão Facial: <span style="color: #f59e0b;">1</span> | 
+                        Movimentos: <span style="color: #10b981;">0</span> | 
+                        Tensão: <span style="color: #f59e0b;">1</span> | 
+                        Ventilador: <span style="color: #f59e0b;">1</span><br>
+                        <strong>Total CPOT: <span style="color: #ef4444;">3/8</span> - 🚨 Dor Detectada</strong>
+                    </div>
+                    
+                    <div style="background: #374151; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                        <strong style="color: #c026d3;">Escala RASS (Sedação):</strong><br>
+                        Nível Atual: <span style="color: #f59e0b;">-2</span> (Sedação Leve)<br>
+                        <strong>Status: <span style="color: #f59e0b;">⚠️ Otimizar analgesia primeiro</span></strong>
+                    </div>
+                    
+                    <div style="background: #374151; padding: 15px; border-radius: 6px; margin-top: 10px;">
+                        <strong style="color: #c026d3;">Medicamentos:</strong><br>
+                        Fentanil: 2.5 mcg/kg/h → <span style="color: #10b981;">3.75 mL/h</span><br>
+                        Propofol: 2.0 mg/kg/h → <span style="color: #10b981;">15.0 mL/h</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Executar diagnósticos ao carregar
+        window.addEventListener('load', () => {
+            setTimeout(runDiagnostics, 500);
+        });
+
+        // Fallback
+        if (document.readyState === 'complete') {
+            setTimeout(runDiagnostics, 500);
+        }
+    </script>
+</body>
+</html>

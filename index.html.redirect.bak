@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="refresh" content="0; URL=./index-simple.html">
+    <title>UTI.AI - Redirecionando...</title>
+    <script>
+        // Redirecionamento via JavaScript como fallback
+        window.location.href = './index-simple.html';
+    </script>
+</head>
+<body style="background-color: #111827;">
+    <p style="color: white; text-align: center; margin-top: 20px;">
+        Redirecionando para UTI.AI Sistema Unificado...
+        <br>
+        <a href="./index-simple.html" style="color: #60a5fa;">Clique aqui se não for redirecionado automaticamente</a>
+    </p>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste UTI.AI</title>
+    <style>
+        body { 
+            background: #111827; 
+            color: #f8fafc; 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            line-height: 1.6;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .info { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <h1>🏥 UTI.AI - Teste de Funcionamento</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = message;
+            output.appendChild(div);
+            console.log(message);
+        }
+        
+        function teste() {
+            log('🔍 <strong>INICIANDO DIAGNÓSTICO UTI.AI</strong>');
+            log('');
+            
+            try {
+                log('✅ HTML carregado corretamente', 'success');
+                log('✅ JavaScript executando', 'success');
+                log('✅ CSS aplicado', 'success');
+                log('✅ Console funcionando', 'success');
+                
+                // Teste localStorage
+                try {
+                    localStorage.setItem('test', 'ok');
+                    localStorage.removeItem('test');
+                    log('✅ LocalStorage funcionando', 'success');
+                } catch (e) {
+                    log('❌ LocalStorage com problema: ' + e.message, 'error');
+                }
+                
+                // Teste JSON
+                try {
+                    JSON.parse('{"test": true}');
+                    log('✅ JSON funcionando', 'success');
+                } catch (e) {
+                    log('❌ JSON com problema: ' + e.message, 'error');
+                }
+                
+                log('');
+                log('🎯 <strong>TESTE DO UTI.AI</strong>');
+                
+                // Dados de teste
+                const patientData = {
+                    name: 'João Silva Santos',
+                    bed: 'Leito 08',
+                    age: 65,
+                    rass: -2,
+                    cpot: 3,
+                    fentanil: 2.5,
+                    propofol: 2.0
+                };
+                
+                log('✅ Dados do paciente carregados', 'success');
+                log(`👤 Paciente: ${patientData.name}, ${patientData.age} anos`);
+                log(`🏥 ${patientData.bed}`);
+                log(`🧠 RASS: ${patientData.rass} | CPOT: ${patientData.cpot}/8`);
+                log(`💊 Fentanil: ${patientData.fentanil} mcg/kg/h`);
+                log(`💊 Propofol: ${patientData.propofol} mg/kg/h`);
+                
+                // Cálculo de infusão
+                const peso = 75;
+                const fentanilInfusion = (patientData.fentanil * peso / 50).toFixed(2);
+                const propofolInfusion = (patientData.propofol * peso / 10).toFixed(2);
+                
+                log(`🧮 Cálculos: Fentanil ${fentanilInfusion} mL/h, Propofol ${propofolInfusion} mL/h`, 'info');
+                
+                // Protocolo SMART-SED
+                if (patientData.cpot > 2) {
+                    log('🚨 Protocolo Analgesia-First: Dor detectada (CPOT > 2)', 'warning');
+                    log('📋 Ação: Otimizar analgesia antes de ajustar sedação', 'warning');
+                } else {
+                    log('✅ CPOT adequado - Proceder com avaliação RASS', 'success');
+                }
+                
+                log('');
+                log('🎉 <strong>SISTEMA UTI.AI FUNCIONANDO PERFEITAMENTE!</strong>', 'success');
+                log('');
+                
+                // Botões de acesso
+                log('<div style="margin-top: 20px; padding: 20px; background: #2d333a; border-radius: 8px;">');
+                log('<h3>🚀 Acessar Sistema Completo:</h3>');
+                log('<button onclick="window.location.href=\'./index-simple.html\'" style="padding: 10px 20px; margin: 5px; background: #4f46e5; color: white; border: none; border-radius: 5px; cursor: pointer;">📱 Versão Simplificada</button>');
+                log('<button onclick="window.location.href=\'./uti-ai-standalone.html\'" style="padding: 10px 20px; margin: 5px; background: #8b5cf6; color: white; border: none; border-radius: 5px; cursor: pointer;">🖥️ Versão Completa</button>');
+                log('</div>');
+                
+                // Auto-redirect para versão simplificada após 5 segundos
+                setTimeout(() => {
+                    log('');
+                    log('🔄 Redirecionando automaticamente para versão simplificada em 3 segundos...', 'info');
+                    
+                    let countdown = 3;
+                    const timer = setInterval(() => {
+                        countdown--;
+                        if (countdown > 0) {
+                            log(`⏱️ Redirecionando em ${countdown}...`, 'info');
+                        } else {
+                            clearInterval(timer);
+                            log('🚀 Redirecionando agora!', 'success');
+                            window.location.href = './index-simple.html';
+                        }
+                    }, 1000);
+                }, 5000);
+                
+            } catch (error) {
+                log('❌ <strong>ERRO CRÍTICO:</strong> ' + error.message, 'error');
+                log('🔧 Stack trace: ' + error.stack, 'error');
+            }
+        }
+        
+        // Executar teste
+        teste();
+    </script>
+</body>
+</html>

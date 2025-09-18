@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTI.AI - Sistema de Cuidados Intensivos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1f26 0%, #0f1419 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: #2d333a;
+            padding: 20px;
+            border-right: 2px solid #374151;
+            overflow-y: auto;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, #4f46e5, #c026d3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        
+        .patient-card {
+            background: #374151;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+        
+        .patient-card:hover {
+            background: #4b5563;
+            transform: translateX(5px);
+        }
+        
+        .patient-card.active {
+            background: #4f46e5;
+            border-left-color: #c026d3;
+        }
+        
+        .patient-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .patient-info {
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+        
+        .patient-diagnosis {
+            font-size: 12px;
+            color: #a855f7;
+            margin-top: 5px;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .patient-header {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #374151;
+            margin-bottom: 30px;
+            gap: 20px;
+        }
+        
+        .tab {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .tab:hover {
+            color: #c026d3;
+        }
+        
+        .tab.active {
+            color: #c026d3;
+            border-bottom-color: #c026d3;
+        }
+        
+        .tab-content {
+            background: #2d333a;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #374151;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #e2e8f0;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            background: #374151;
+            border: 2px solid #4b5563;
+            border-radius: 6px;
+            color: #f8fafc;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+        }
+        
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .score-card {
+            background: #374151;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #8b5cf6;
+        }
+        
+        .score-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #a855f7;
+        }
+        
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px 0;
+        }
+        
+        .score-select {
+            padding: 5px 10px;
+            background: #4b5563;
+            border: 1px solid #6b7280;
+            border-radius: 4px;
+            color: #f8fafc;
+            width: 80px;
+        }
+        
+        .score-total {
+            text-align: center;
+            padding: 15px;
+            border-top: 2px solid #4b5563;
+            margin-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .sedacao-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .cpot-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .cpot-btn {
+            flex: 1;
+            padding: 10px;
+            background: #4b5563;
+            border: 2px solid #6b7280;
+            border-radius: 6px;
+            color: #f8fafc;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+        
+        .cpot-btn:hover {
+            border-color: #8b5cf6;
+        }
+        
+        .cpot-btn.active {
+            background: #8b5cf6;
+            border-color: #a855f7;
+        }
+        
+        .rass-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 20px 0;
+        }
+        
+        .rass-btn {
+            padding: 15px 8px;
+            background: #4b5563;
+            border: 2px solid #6b7280;
+            border-radius: 6px;
+            color: #f8fafc;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+        
+        .rass-btn:hover {
+            border-color: #8b5cf6;
+        }
+        
+        .rass-btn.active {
+            background: #8b5cf6;
+            border-color: #a855f7;
+        }
+        
+        .rass-btn.meta {
+            border-color: #10b981;
+        }
+        
+        .rass-btn.meta.active {
+            background: #10b981;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        
+        .status-adequate {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .status-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+        
+        .status-critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        
+        .btn-add {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(to right, #4f46e5, #8b5cf6);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+        
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0f1419;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading.hidden {
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #374151;
+            border-top: 4px solid #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .medication-card {
+            background: #374151;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .medication-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #c026d3;
+        }
+        
+        .med-input {
+            width: 100%;
+            padding: 8px;
+            background: #4b5563;
+            border: 1px solid #6b7280;
+            border-radius: 4px;
+            color: #f8fafc;
+            margin-bottom: 8px;
+        }
+        
+        .infusion-result {
+            text-align: center;
+            padding: 10px;
+            background: #065f46;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #10b981;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 200px;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .rass-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <h2 style="color: #f8fafc; font-size: 24px; margin-bottom: 10px;">🏥 UTI.AI</h2>
+        <p style="color: #cbd5e1;">Carregando Sistema de Cuidados Intensivos...</p>
+    </div>
+
+    <!-- App Container -->
+    <div id="app" class="container" style="display: none;">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">UTI.AI Sistema Unificado</div>
+            <button class="btn-add" onclick="addPatient()">➕ Adicionar Paciente</button>
+            <div id="patients-list">
+                <!-- Pacientes serão inseridos aqui -->
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div id="patient-header" class="header">
+                <!-- Header do paciente -->
+            </div>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="selectTab('resumo')">📄 Resumo</div>
+                <div class="tab" onclick="selectTab('sistemas')">🏥 Sistemas</div>
+                <div class="tab" onclick="selectTab('vm')">🫁 VM</div>
+                <div class="tab" onclick="selectTab('scores')">📊 Scores</div>
+                <div class="tab" onclick="selectTab('balanco')">💧 Balanço</div>
+                <div class="tab" onclick="selectTab('plano')">📋 Plano</div>
+                <div class="tab" onclick="selectTab('sedacao')">🧠 Sedação</div>
+                <div class="tab" onclick="selectTab('ia')">🤖 IA</div>
+            </div>
+            
+            <div id="tab-content" class="tab-content">
+                <!-- Conteúdo será inserido aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado da aplicação
+        let appState = {
+            patients: {
+                'leito08': {
+                    bed: 'Leito 08',
+                    name: 'João Silva Santos',
+                    age: 65,
+                    gender: 'Masculino',
+                    mainDiagnosis: 'Choque Séptico de Foco Pulmonar',
+                    admissionDate: '2025-09-10',
+                    icuDay: 3,
+                    history: 'Pneumonia comunitária grave com choque séptico.',
+                    problems: '1. Choque Séptico\n2. SARA Moderada\n3. LRA KDIGO 2',
+                    neuro: 'RASS -2, Glasgow 3T',
+                    cardio: 'Noradrenalina 0.5 mcg/kg/min',
+                    resp: 'SARA moderada, P/F 140',
+                    renal: 'LRA KDIGO 2, Cr 2.1',
+                    balanco_entradas: 'SF 1500ml\nDieta 1000ml',
+                    balanco_saidas: 'Diurese 1200ml',
+                    balanco_acumulado: '+2800 ml',
+                    plano: 'Ventilação protetora\nDesmame de vasopressor',
+                    peso: 75,
+                    rass_atual: -2,
+                    cpot_expressao: 1,
+                    cpot_movimentos: 0,
+                    cpot_tensao: 1,
+                    cpot_ventilador: 1,
+                    fentanil_dose: 2.5,
+                    propofol_dose: 2.0,
+                    observacoes_sedacao: 'Sedação moderada. CPOT=3 sugere dor residual.',
+                    sofa_resp: 3, sofa_coag: 2, sofa_liver: 0, sofa_cardio: 4, sofa_gcs: 4, sofa_renal: 2,
+                    gcs_eyes: 1, gcs_verbal: 1, gcs_motor: 1
+                },
+                'leito12': {
+                    bed: 'Leito 12',
+                    name: 'Maria Aparecida Costa',
+                    age: 78,
+                    gender: 'Feminino',
+                    mainDiagnosis: 'Pós-op Revascularização Miocárdio',
+                    admissionDate: '2025-09-08',
+                    icuDay: 5,
+                    history: 'CRM urgência por IAMCSST.',
+                    problems: '1. Choque Cardiogênico\n2. FA alta resposta',
+                    neuro: 'RASS 0, orientada',
+                    cardio: 'Dobutamina + Noradrenalina',
+                    resp: 'Desmame ventilatório PSV',
+                    renal: 'LRA KDIGO 1',
+                    balanco_entradas: 'Dieta 1200ml',
+                    balanco_saidas: 'Diurese 2500ml',
+                    balanco_acumulado: '-1400 ml',
+                    plano: 'Desmame VM\nControle FA',
+                    peso: 62,
+                    rass_atual: 0,
+                    cpot_expressao: 0,
+                    cpot_movimentos: 0,
+                    cpot_tensao: 0,
+                    cpot_ventilador: 0,
+                    fentanil_dose: 1.0,
+                    dexmedetomidina_dose: 0.6,
+                    observacoes_sedacao: 'Desmame sedação. RASS 0 adequado.',
+                    sofa_resp: 1, sofa_coag: 1, sofa_liver: 0, sofa_cardio: 3, sofa_gcs: 1, sofa_renal: 1,
+                    gcs_eyes: 4, gcs_verbal: 4, gcs_motor: 6
+                }
+            },
+            activePatientId: 'leito08',
+            activeTab: 'resumo'
+        };
+
+        // Funções utilitárias
+        function saveData() {
+            try {
+                localStorage.setItem('utiAiData', JSON.stringify({
+                    patientDatabase: appState.patients,
+                    activePatientId: appState.activePatientId
+                }));
+            } catch (e) {
+                console.warn('Erro ao salvar:', e);
+            }
+        }
+
+        function loadData() {
+            try {
+                const saved = localStorage.getItem('utiAiData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    if (data.patientDatabase) {
+                        appState.patients = data.patientDatabase;
+                        appState.activePatientId = data.activePatientId || Object.keys(data.patientDatabase)[0];
+                    }
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar:', e);
+            }
+        }
+
+        // Renderizar lista de pacientes
+        function renderPatients() {
+            const container = document.getElementById('patients-list');
+            container.innerHTML = '';
+            
+            Object.entries(appState.patients).forEach(([id, patient]) => {
+                const div = document.createElement('div');
+                div.className = `patient-card ${id === appState.activePatientId ? 'active' : ''}`;
+                div.onclick = () => selectPatient(id);
+                
+                // Status badge
+                const cpotTotal = (patient.cpot_expressao || 0) + (patient.cpot_movimentos || 0) + (patient.cpot_tensao || 0) + (patient.cpot_ventilador || 0);
+                const rassAtual = patient.rass_atual || 0;
+                let statusClass = 'status-adequate';
+                let statusText = '✅ Adequado';
+                
+                if (cpotTotal > 2) {
+                    statusClass = 'status-critical';
+                    statusText = '🚨 Dor';
+                } else if (rassAtual > 0 || rassAtual < -2) {
+                    statusClass = 'status-warning';
+                    statusText = '⚠️ Ajuste';
+                }
+                
+                div.innerHTML = `
+                    <div class="patient-name">${patient.bed}</div>
+                    <div class="patient-info">${patient.name}, ${patient.age} anos</div>
+                    <div class="patient-diagnosis">${patient.mainDiagnosis}</div>
+                    <div class="status-badge ${statusClass}">${statusText}</div>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+
+        // Renderizar header do paciente
+        function renderPatientHeader() {
+            const patient = appState.patients[appState.activePatientId];
+            if (!patient) return;
+
+            const container = document.getElementById('patient-header');
+            container.innerHTML = `
+                <div class="patient-header">${patient.bed} - ${patient.name}, ${patient.age} anos</div>
+                <div style="color: #cbd5e1;">Diagnóstico: ${patient.mainDiagnosis}</div>
+                <div style="color: #94a3b8; margin-top: 5px;">
+                    Admissão: ${formatDate(patient.admissionDate)} | Dia de UTI: ${patient.icuDay}
+                </div>
+            `;
+        }
+
+        // Renderizar conteúdo da aba
+        function renderTabContent() {
+            const patient = appState.patients[appState.activePatientId];
+            if (!patient) return;
+
+            const container = document.getElementById('tab-content');
+            
+            switch (appState.activeTab) {
+                case 'resumo':
+                    container.innerHTML = `
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">História Resumida</label>
+                                <textarea class="form-input" rows="8" onchange="updatePatient('history', this.value)">${patient.history || ''}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Lista de Problemas</label>
+                                <textarea class="form-input" rows="8" onchange="updatePatient('problems', this.value)">${patient.problems || ''}</textarea>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'sistemas':
+                    container.innerHTML = `
+                        <div style="display: grid; gap: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">🧠 Neurológico</label>
+                                <textarea class="form-input" rows="3" onchange="updatePatient('neuro', this.value)">${patient.neuro || ''}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">❤️ Cardiovascular</label>
+                                <textarea class="form-input" rows="3" onchange="updatePatient('cardio', this.value)">${patient.cardio || ''}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">🫁 Respiratório</label>
+                                <textarea class="form-input" rows="3" onchange="updatePatient('resp', this.value)">${patient.resp || ''}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">🫘 Renal/Metabólico</label>
+                                <textarea class="form-input" rows="3" onchange="updatePatient('renal', this.value)">${patient.renal || ''}</textarea>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'scores':
+                    const sofaTotal = (patient.sofa_resp || 0) + (patient.sofa_coag || 0) + (patient.sofa_liver || 0) + (patient.sofa_cardio || 0) + (patient.sofa_gcs || 0) + (patient.sofa_renal || 0);
+                    const gcsTotal = (patient.gcs_eyes || 4) + (patient.gcs_verbal || 5) + (patient.gcs_motor || 6);
+                    
+                    container.innerHTML = `
+                        <div class="score-grid">
+                            <div class="score-card">
+                                <div class="score-title">SOFA Score</div>
+                                <div class="score-item">
+                                    <span>Respiratório:</span>
+                                    <select class="score-select" onchange="updatePatient('sofa_resp', this.value)">
+                                        ${[0,1,2,3,4].map(v => `<option value="${v}" ${(patient.sofa_resp || 0) == v ? 'selected' : ''}>${v}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="score-item">
+                                    <span>Coagulação:</span>
+                                    <select class="score-select" onchange="updatePatient('sofa_coag', this.value)">
+                                        ${[0,1,2,3,4].map(v => `<option value="${v}" ${(patient.sofa_coag || 0) == v ? 'selected' : ''}>${v}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="score-item">
+                                    <span>Fígado:</span>
+                                    <select class="score-select" onchange="updatePatient('sofa_liver', this.value)">
+                                        ${[0,1,2,3,4].map(v => `<option value="${v}" ${(patient.sofa_liver || 0) == v ? 'selected' : ''}>${v}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="score-item">
+                                    <span>Cardiovascular:</span>
+                                    <select class="score-select" onchange="updatePatient('sofa_cardio', this.value)">
+                                        ${[0,1,2,3,4].map(v => `<option value="${v}" ${(patient.sofa_cardio || 0) == v ? 'selected' : ''}>${v}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="score-item">
+                                    <span>Glasgow:</span>
+                                    <select class="score-select" onchange="updatePatient('sofa_gcs', this.value)">
+                                        ${[0,1,2,3,4].map(v => `<option value="${v}" ${(patient.sofa_gcs || 0) == v ? 'selected' : ''}>${v}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="score-item">
+                                    <span>Renal:</span>
+                                    <select class="score-select" onchange="updatePatient('sofa_renal', this.value)">
+                                        ${[0,1,2,3,4].map(v => `<option value="${v}" ${(patient.sofa_renal || 0) == v ? 'selected' : ''}>${v}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="score-total">Total: ${sofaTotal}</div>
+                            </div>
+
+                            <div class="score-card">
+                                <div class="score-title">Glasgow Coma Scale</div>
+                                <div class="score-item">
+                                    <span>Abertura Ocular:</span>
+                                    <select class="score-select" onchange="updatePatient('gcs_eyes', this.value)">
+                                        ${[4,3,2,1].map(v => `<option value="${v}" ${(patient.gcs_eyes || 4) == v ? 'selected' : ''}>${v}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="score-item">
+                                    <span>Resposta Verbal:</span>
+                                    <select class="score-select" onchange="updatePatient('gcs_verbal', this.value)">
+                                        ${[5,4,3,2,1].map(v => `<option value="${v}" ${(patient.gcs_verbal || 5) == v ? 'selected' : ''}>${v}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="score-item">
+                                    <span>Resposta Motora:</span>
+                                    <select class="score-select" onchange="updatePatient('gcs_motor', this.value)">
+                                        ${[6,5,4,3,2,1].map(v => `<option value="${v}" ${(patient.gcs_motor || 6) == v ? 'selected' : ''}>${v}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="score-total">Total: ${gcsTotal}</div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'sedacao':
+                    const cpotTotal = (patient.cpot_expressao || 0) + (patient.cpot_movimentos || 0) + (patient.cpot_tensao || 0) + (patient.cpot_ventilador || 0);
+                    const rassAtual = patient.rass_atual || 0;
+                    
+                    container.innerHTML = `
+                        <div style="margin-bottom: 30px; background: linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(192, 38, 211, 0.1)); padding: 20px; border-radius: 12px; border: 1px solid #8b5cf6;">
+                            <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 15px;">🧠 Protocolo SMART-SED</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                                <div>Peso: <strong>${patient.peso || 70} kg</strong></div>
+                                <div>CPOT: <strong style="color: ${cpotTotal <= 2 ? '#10b981' : cpotTotal <= 4 ? '#f59e0b' : '#ef4444'}">${cpotTotal}/8</strong></div>
+                                <div>RASS: <strong style="color: ${rassAtual >= -1 && rassAtual <= 0 ? '#10b981' : rassAtual > 0 ? '#ef4444' : '#f59e0b'}">${rassAtual >= 0 ? '+' : ''}${rassAtual}</strong></div>
+                            </div>
+                        </div>
+
+                        <div class="sedacao-grid">
+                            <div class="score-card">
+                                <div class="score-title">CPOT - Avaliação de Dor</div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 600;">Expressão Facial</label>
+                                    <div class="cpot-buttons">
+                                        ${[0,1,2].map(v => `
+                                            <button class="cpot-btn ${(patient.cpot_expressao || 0) == v ? 'active' : ''}" 
+                                                    onclick="updatePatient('cpot_expressao', ${v}); renderUI();">
+                                                <div style="font-weight: bold;">${v}</div>
+                                                <div>${['Relaxada', 'Tensa', 'Contraída'][v]}</div>
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 600;">Movimentos</label>
+                                    <div class="cpot-buttons">
+                                        ${[0,1,2].map(v => `
+                                            <button class="cpot-btn ${(patient.cpot_movimentos || 0) == v ? 'active' : ''}" 
+                                                    onclick="updatePatient('cpot_movimentos', ${v}); renderUI();">
+                                                <div style="font-weight: bold;">${v}</div>
+                                                <div>${['Ausentes', 'Proteção', 'Agitação'][v]}</div>
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 600;">Tensão Muscular</label>
+                                    <div class="cpot-buttons">
+                                        ${[0,1,2].map(v => `
+                                            <button class="cpot-btn ${(patient.cpot_tensao || 0) == v ? 'active' : ''}" 
+                                                    onclick="updatePatient('cpot_tensao', ${v}); renderUI();">
+                                                <div style="font-weight: bold;">${v}</div>
+                                                <div>${['Relaxado', 'Tenso', 'Muito Tenso'][v]}</div>
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; margin-bottom: 5px; font-weight: 600;">Ventilador</label>
+                                    <div class="cpot-buttons">
+                                        ${[0,1,2].map(v => `
+                                            <button class="cpot-btn ${(patient.cpot_ventilador || 0) == v ? 'active' : ''}" 
+                                                    onclick="updatePatient('cpot_ventilador', ${v}); renderUI();">
+                                                <div style="font-weight: bold;">${v}</div>
+                                                <div>${['Tolerando', 'Tosse', 'Fighting'][v]}</div>
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+
+                                <div class="score-total">
+                                    CPOT Total: ${cpotTotal}/8
+                                    <div style="font-size: 14px; margin-top: 8px; color: ${cpotTotal <= 2 ? '#10b981' : cpotTotal <= 4 ? '#f59e0b' : '#ef4444'}">
+                                        ${cpotTotal <= 2 ? '✅ Analgesia Adequada' : cpotTotal <= 4 ? '⚠️ Dor Leve' : '🚨 Dor Significativa'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="score-card">
+                                <div class="score-title">RASS - Nível de Sedação</div>
+                                
+                                <div style="background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #10b981;">
+                                    <div style="color: #10b981; font-weight: bold;">Meta RASS: -1 a 0</div>
+                                    <div style="font-size: 12px; color: #059669;">Sonolento mas desperta facilmente ou alerta e calmo</div>
+                                </div>
+                                
+                                <div class="rass-grid">
+                                    ${[-5,-4,-3,-2,-1,0,1,2,3,4].map(v => `
+                                        <button class="rass-btn ${(patient.rass_atual || 0) == v ? 'active' : ''} ${(v >= -1 && v <= 0) ? 'meta' : ''}" 
+                                                onclick="updatePatient('rass_atual', ${v}); renderUI();">
+                                            <div style="font-weight: bold; font-size: 16px;">${v >= 0 ? '+' : ''}${v}</div>
+                                            <div style="font-size: 10px;">
+                                                ${v === 4 ? 'Combativo' : v === 3 ? 'M. Agitado' : v === 2 ? 'Agitado' : v === 1 ? 'Inquieto' : 
+                                                  v === 0 ? 'Alerta' : v === -1 ? 'Sonolento' : v === -2 ? 'Sed. Leve' : 
+                                                  v === -3 ? 'Sed. Mod.' : v === -4 ? 'Sed. Prof.' : 'Não Desp.'}
+                                            </div>
+                                            ${(v >= -1 && v <= 0) ? '<div style="font-size: 10px; color: #10b981;">🎯 META</div>' : ''}
+                                        </button>
+                                    `).join('')}
+                                </div>
+
+                                <div class="score-total">
+                                    RASS Atual: ${rassAtual >= 0 ? '+' : ''}${rassAtual}
+                                    <div style="font-size: 14px; margin-top: 8px; color: ${rassAtual >= -1 && rassAtual <= 0 ? '#10b981' : rassAtual > 0 ? '#ef4444' : '#f59e0b'}">
+                                        ${rassAtual >= -1 && rassAtual <= 0 ? '✅ Meta Atingida' : rassAtual > 0 ? '⚠️ Agitação' : '📉 Sedação Excessiva'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <div class="score-card">
+                                <div class="score-title">💊 Medicamentos</div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                                    <div class="medication-card">
+                                        <div class="medication-name">Fentanil</div>
+                                        <input type="number" class="med-input" placeholder="Dose (mcg/kg/h)" 
+                                               value="${patient.fentanil_dose || ''}" 
+                                               onchange="updatePatient('fentanil_dose', this.value); calcInfusion('fentanil')">
+                                        <div class="infusion-result" id="fentanil-result">
+                                            ${patient.fentanil_dose > 0 ? ((patient.fentanil_dose * patient.peso) / 50).toFixed(2) + ' mL/h' : '0 mL/h'}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="medication-card">
+                                        <div class="medication-name">Propofol</div>
+                                        <input type="number" class="med-input" placeholder="Dose (mg/kg/h)" 
+                                               value="${patient.propofol_dose || ''}" 
+                                               onchange="updatePatient('propofol_dose', this.value); calcInfusion('propofol')">
+                                        <div class="infusion-result" id="propofol-result">
+                                            ${patient.propofol_dose > 0 ? ((patient.propofol_dose * patient.peso) / 10).toFixed(2) + ' mL/h' : '0 mL/h'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">📝 Observações de Sedação</label>
+                                <textarea class="form-input" rows="4" onchange="updatePatient('observacoes_sedacao', this.value)">${patient.observacoes_sedacao || ''}</textarea>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'balanco':
+                    container.innerHTML = `
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label class="form-label">💧 Entradas (ml)</label>
+                                <textarea class="form-input" rows="6" onchange="updatePatient('balanco_entradas', this.value)">${patient.balanco_entradas || ''}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">💧 Saídas (ml)</label>
+                                <textarea class="form-input" rows="6" onchange="updatePatient('balanco_saidas', this.value)">${patient.balanco_saidas || ''}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Balanço Acumulado</label>
+                            <input class="form-input" style="text-align: center; font-weight: bold;" 
+                                   value="${patient.balanco_acumulado || ''}" 
+                                   onchange="updatePatient('balanco_acumulado', this.value)"
+                                   placeholder="+0 ml">
+                        </div>
+                    `;
+                    break;
+
+                case 'plano':
+                    container.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">📋 Plano Terapêutico</label>
+                            <textarea class="form-input" rows="15" onchange="updatePatient('plano', this.value)">${patient.plano || ''}</textarea>
+                        </div>
+                    `;
+                    break;
+
+                case 'ia':
+                    container.innerHTML = `
+                        <div style="text-center; padding: 40px;">
+                            <h3 style="font-size: 24px; margin-bottom: 15px;">🤖 <span style="background: linear-gradient(to right, #4f46e5, #c026d3); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">IA-Intensivista</span></h3>
+                            <p style="color: #cbd5e1; margin-bottom: 30px;">Análise especializada com inteligência artificial</p>
+                            <button style="padding: 15px 30px; background: linear-gradient(to right, #4f46e5, #8b5cf6); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;" 
+                                    onclick="alert('Funcionalidade de IA será implementada em breve!')">
+                                🤖 Analisar Paciente
+                            </button>
+                            <div style="margin-top: 30px; background: #2d333a; padding: 20px; border-radius: 8px; border: 1px solid #374151;">
+                                <p style="color: #94a3b8;">A análise de IA especializada integrará dados clínicos, scores e protocolos para fornecer insights avançados sobre o manejo do paciente crítico.</p>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                default:
+                    container.innerHTML = `
+                        <div class="form-group">
+                            <label class="form-label">Aba: ${appState.activeTab}</label>
+                            <textarea class="form-input" rows="8" placeholder="Conteúdo em desenvolvimento...">${patient[appState.activeTab] || ''}</textarea>
+                        </div>
+                    `;
+            }
+        }
+
+        // Funções de interação
+        function selectPatient(id) {
+            appState.activePatientId = id;
+            renderUI();
+            saveData();
+        }
+
+        function selectTab(tab) {
+            // Remove active de todas as tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            // Adiciona active na tab clicada
+            event.target.classList.add('active');
+            
+            appState.activeTab = tab;
+            renderTabContent();
+        }
+
+        function updatePatient(field, value) {
+            if (appState.activePatientId) {
+                appState.patients[appState.activePatientId][field] = value;
+                saveData();
+            }
+        }
+
+        function calcInfusion(med) {
+            const patient = appState.patients[appState.activePatientId];
+            if (!patient) return;
+            
+            const peso = patient.peso || 70;
+            const dose = parseFloat(patient[med + '_dose']) || 0;
+            
+            let concentracao = 50; // fentanil padrão
+            if (med === 'propofol') concentracao = 10;
+            if (med === 'dexmedetomidina') concentracao = 4;
+            
+            const infusao = dose > 0 ? (dose * peso / concentracao).toFixed(2) : '0';
+            
+            const resultElement = document.getElementById(med + '-result');
+            if (resultElement) {
+                resultElement.textContent = infusao + ' mL/h';
+            }
+        }
+
+        function addPatient() {
+            const name = prompt('Nome do paciente:') || 'Novo Paciente';
+            const bed = prompt('Leito:') || 'Novo Leito';
+            
+            const newId = 'leito_' + Date.now();
+            appState.patients[newId] = {
+                bed: bed,
+                name: name,
+                age: 65,
+                gender: 'Masculino',
+                mainDiagnosis: 'Diagnóstico a definir',
+                admissionDate: new Date().toISOString().split('T')[0],
+                icuDay: 1,
+                history: '',
+                problems: '',
+                neuro: '', cardio: '', resp: '', renal: '',
+                balanco_entradas: '', balanco_saidas: '', balanco_acumulado: '',
+                plano: '',
+                peso: 70,
+                rass_atual: 0,
+                cpot_expressao: 0, cpot_movimentos: 0, cpot_tensao: 0, cpot_ventilador: 0,
+                fentanil_dose: 0, propofol_dose: 0,
+                observacoes_sedacao: '',
+                sofa_resp: 0, sofa_coag: 0, sofa_liver: 0, sofa_cardio: 0, sofa_gcs: 0, sofa_renal: 0,
+                gcs_eyes: 4, gcs_verbal: 5, gcs_motor: 6
+            };
+            
+            appState.activePatientId = newId;
+            renderUI();
+            saveData();
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                return new Date(dateStr).toLocaleDateString('pt-BR');
+            } catch {
+                return dateStr;
+            }
+        }
+
+        // Renderizar toda a UI
+        function renderUI() {
+            renderPatients();
+            renderPatientHeader();
+            renderTabContent();
+        }
+
+        // Inicialização
+        function initApp() {
+            console.log('🚀 Iniciando UTI.AI...');
+            
+            // Carregar dados salvos
+            loadData();
+            
+            // Renderizar interface
+            renderUI();
+            
+            // Mostrar app e ocultar loading
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+                console.log('✅ UTI.AI carregado com sucesso!');
+            }, 1500);
+        }
+
+        // Aguardar carregamento da página
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+    </script>
+</body>
+</html>

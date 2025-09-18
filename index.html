@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UTI.AI - Sistema de Cuidados Intensivos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              // Medical Theme Colors - Inspirado no Vision UI
+              'medical': {
+                'primary': '#4c51bf',    // Roxo médico
+                'secondary': '#667eea',  // Azul suave
+                'accent': '#48bb78',     // Verde médico
+                'danger': '#f56565',     // Vermelho alerta
+                'warning': '#ed8936',    // Laranja aviso
+                'info': '#4299e1',      // Azul informativo
+                'success': '#38a169'     // Verde sucesso
+              },
+              'dark': {
+                'bg': '#0f0f23',         // Fundo principal escuro
+                'surface': '#1a1d2e',    // Superfícies
+                'card': '#232741',       // Cards
+                'border': '#2d3346',     // Bordas
+                'text': {
+                  'primary': '#ffffff',   // Texto principal
+                  'secondary': '#a0aec0', // Texto secundário
+                  'muted': '#718096'      // Texto suave
+                }
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1d2e 50%, #232741 100%);
+        color: #ffffff;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      #root {
+        min-height: 100vh;
+        display: flex;
+      }
+
+      /* Glassmorphism Effects */
+      .glass {
+        background: rgba(35, 39, 65, 0.3);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      .glass-light {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      /* Button System - Inspirado no Vision UI */
+      .btn-primary {
+        background: linear-gradient(135deg, #4c51bf 0%, #667eea 100%);
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        border: none;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(76, 81, 191, 0.4);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(76, 81, 191, 0.6);
+        background: linear-gradient(135deg, #5a67d8 0%, #7c3aed 100%);
+      }
+
+      .btn-primary:active {
+        transform: translateY(0);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.08);
+        color: #a0aec0;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.12);
+        color: #ffffff;
+        transform: translateY(-1px);
+      }
+
+      /* Form Controls - Melhor Contraste */
+      .form-input, .form-select, .form-textarea {
+        background: rgba(35, 39, 65, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        color: #ffffff;
+        font-weight: 400;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(8px);
+      }
+
+      .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: #4c51bf;
+        box-shadow: 0 0 0 3px rgba(76, 81, 191, 0.2);
+        background: rgba(35, 39, 65, 0.8);
+      }
+
+      .form-input::placeholder {
+        color: #a0aec0;
+        font-weight: 400;
+      }
+
+      /* Card System */
+      .medical-card {
+        background: linear-gradient(135deg, rgba(35, 39, 65, 0.8) 0%, rgba(26, 29, 46, 0.9) 100%);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .medical-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        border-color: rgba(76, 81, 191, 0.3);
+      }
+
+      /* Tab System */
+      .tab-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        position: relative;
+        background: transparent;
+        border: 1px solid transparent;
+      }
+
+      .tab-button.active {
+        background: linear-gradient(135deg, #4c51bf 0%, #667eea 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(76, 81, 191, 0.4);
+      }
+
+      .tab-button:not(.active) {
+        color: #a0aec0;
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .tab-button:not(.active):hover {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-1px);
+      }
+
+      /* Alert System */
+      .alert-critical {
+        background: linear-gradient(135deg, rgba(245, 101, 101, 0.2) 0%, rgba(229, 62, 62, 0.3) 100%);
+        border: 1px solid rgba(245, 101, 101, 0.5);
+        color: #fed7d7;
+        border-radius: 12px;
+        padding: 1rem;
+      }
+
+      .alert-warning {
+        background: linear-gradient(135deg, rgba(237, 137, 54, 0.2) 0%, rgba(221, 107, 32, 0.3) 100%);
+        border: 1px solid rgba(237, 137, 54, 0.5);
+        color: #feebc8;
+        border-radius: 12px;
+        padding: 1rem;
+      }
+
+      .alert-success {
+        background: linear-gradient(135deg, rgba(56, 161, 105, 0.2) 0%, rgba(47, 133, 90, 0.3) 100%);
+        border: 1px solid rgba(56, 161, 105, 0.5);
+        color: #c6f6d5;
+        border-radius: 12px;
+        padding: 1rem;
+      }
+
+      .alert-info {
+        background: linear-gradient(135deg, rgba(66, 153, 225, 0.2) 0%, rgba(49, 130, 206, 0.3) 100%);
+        border: 1px solid rgba(66, 153, 225, 0.5);
+        color: #bee3f8;
+        border-radius: 12px;
+        padding: 1rem;
+      }
+
+      /* Loading Animation */
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .loader {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(76, 81, 191, 0.2);
+        border-top: 3px solid #4c51bf;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Scroll personalizado */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(45, 51, 70, 0.3);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #4c51bf, #667eea);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #5a67d8, #7c3aed);
+      }
+
+      /* Tipografia */
+      .text-primary {
+        color: #ffffff;
+      }
+
+      .text-secondary {
+        color: #a0aec0;
+      }
+
+      .text-muted {
+        color: #718096;
+      }
+
+      /* Medical Color Classes for Text */
+      .text-medical-primary {
+        color: #4c51bf;
+      }
+
+      .text-medical-secondary {
+        color: #667eea;
+      }
+
+      .text-medical-accent {
+        color: #48bb78;
+      }
+
+      .text-medical-danger {
+        color: #f56565;
+      }
+
+      .text-medical-warning {
+        color: #ed8936;
+      }
+
+      .text-medical-info {
+        color: #4299e1;
+      }
+
+      .text-medical-success {
+        color: #38a169;
+      }
+
+      /* Background Classes */
+      .bg-dark-surface {
+        background-color: #1a1d2e;
+      }
+
+      .bg-dark-card {
+        background-color: #232741;
+      }
+
+      /* Sombras personalizadas */
+      .shadow-medical {
+        box-shadow: 0 10px 40px rgba(15, 15, 35, 0.4);
+      }
+
+      .shadow-glow {
+        box-shadow: 0 0 30px rgba(76, 81, 191, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="loading">
+        <div class="loader"></div>
+        <p>Carregando UTI.AI...</p>
+      </div>
+    </div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

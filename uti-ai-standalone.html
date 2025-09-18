@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UTI.AI - Sistema Inteligente de Cuidados Intensivos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #d1d5db;
+        }
+        
+        .main-gradient-text {
+            background: linear-gradient(to right, #4f46e5, #c026d3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .btn-primary {
+            background-image: linear-gradient(to right, #4f46e5 0%, #a855f7 51%, #4f46e5 100%);
+            background-size: 200% auto;
+            color: white;
+            transition: 0.5s;
+        }
+        
+        .btn-primary:hover {
+            background-position: right center;
+        }
+        
+        .loader {
+            border: 4px solid #374151;
+            border-top: 4px solid #6d28d9;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .form-input {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            color: #d1d5db;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+            width: 100%;
+            padding: 0.5rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+        
+        .score-card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .tab-button {
+            padding: 1rem 0.25rem;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+        }
+        
+        .tab-button.active {
+            color: white;
+            border-bottom-color: #8b5cf6;
+        }
+        
+        .tab-button:not(.active) {
+            color: #9ca3af;
+        }
+        
+        .tab-button:not(.active):hover {
+            color: white;
+            border-bottom-color: #8b5cf6;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="fixed inset-0 bg-gray-900 flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="loader mb-4"></div>
+            <h2 class="text-white text-xl font-bold">🏥 UTI.AI</h2>
+            <p class="text-gray-400 mt-2">Carregando Sistema de Cuidados Intensivos...</p>
+        </div>
+    </div>
+    
+    <div id="app" class="hidden">
+        <!-- Aplicação será renderizada aqui -->
+    </div>
+
+    <script>
+        // Dados iniciais
+        const initialPatients = {
+            'leito08': { 
+                bed: 'Leito 08', 
+                name: 'João Silva Santos', 
+                age: 65, 
+                gender: 'Masculino', 
+                admissionDate: '2025-09-10', 
+                icuDay: 3, 
+                mainDiagnosis: 'Choque Séptico de Foco Pulmonar',
+                history: 'Paciente admitido por quadro de pneumonia comunitária grave que evoluiu com insuficiência respiratória e choque séptico necessitando de intubação orotraqueal e suporte com drogas vasoativas.',
+                problems: '1. Choque Séptico de Foco Pulmonar\n2. SARA Moderada (P/F 140)\n3. Lesão Renal Aguda KDIGO 2\n4. Acidose metabólica compensada',
+                neuro: 'RASS -2 (Propofol 15ml/h + Fentanil 3.75ml/h). Glasgow 3T. Pupilas isofotorreagentes.',
+                cardio: 'Noradrenalina 0.5 mcg/kg/min para manter PAM > 65 mmHg. Débito urinário 0.8 ml/kg/h.',
+                resp: 'SARA moderada com P/F de 140. Paciente pronado 16h/dia. VM protetora.',
+                renal: 'LRA KDIGO 2 (Creatinina 2.1 mg/dL). Gasometria: pH 7.28, PaCO2 42, HCO3 18, Lactato 3.8.',
+                vm_modo: 'PCV', vm_vc: '380', vm_fr: 20, vm_peep: '12', vm_pip: 30, vm_plato: '27', vm_fio2: 60,
+                balanco_entradas: 'SF 0.9% 1500ml\nDieta enteral 1000ml\nMedicações 200ml\nHemoderivados 0ml',
+                balanco_saidas: 'Diurese 1200ml\nPerdas insensíveis 800ml',
+                balanco_acumulado: '+2800 ml',
+                plano: '## PLANO TERAPÊUTICO\n\n### RESPIRATÓRIO\n- Manter ventilação protetora (VC ≤6ml/kg)\n- Posição prona 16h/dia\n- Meta P/F >150\n\n### CARDIOVASCULAR\n- Desmame progressivo de vasopressor\n- Meta PAM 65-70 mmHg\n\n### INFECCIOSO\n- Tazocin D3/7\n- Reavaliar antibioticoterapia conforme culturas\n\n## PENDÊNCIAS\n- [ ] Coletar hemocultura de controle\n- [ ] Gasometria de controle às 14h\n- [ ] Discussão sobre traqueostomia',
+                sofa_resp: 3, sofa_coag: 2, sofa_liver: 0, sofa_cardio: 4, sofa_gcs: 4, sofa_renal: 2,
+                gcs_eyes: 1, gcs_verbal: 1, gcs_motor: 1,
+                ibw_altura: 175, ibw_sexo: 'M', pf_pao2: 84, pf_fio2: 60, raw_fluxo: 60, oi_pma: 18,
+                
+                // SMART-SED UTI
+                peso: 75, tempo_intubacao: 72, previsao_vm: 7,
+                rass_atual: -2, meta_rass: -1, meta_cpot: 2,
+                cpot_expressao: 1, cpot_movimentos: 0, cpot_tensao: 1, cpot_ventilador: 1,
+                fentanil_dose: 2.5, fentanil_concentracao: 50, fentanil_infusao: 3.75,
+                propofol_dose: 2.0, propofol_concentracao: 10, propofol_infusao: 15.0,
+                observacoes_sedacao: 'Paciente com sedação moderada. CPOT=3 sugere dor residual. Considerar otimização da analgesia.'
+            },
+            'leito12': { 
+                bed: 'Leito 12', 
+                name: 'Maria Aparecida Costa', 
+                age: 78, 
+                gender: 'Feminino', 
+                admissionDate: '2025-09-08', 
+                icuDay: 5, 
+                mainDiagnosis: 'Pós-operatório de Revascularização do Miocárdio',
+                history: 'Paciente submetida a cirurgia de revascularização do miocárdio de urgência por IAMCSST.',
+                problems: '1. Choque Cardiogênico pós CRM\n2. Fibrilação Atrial de alta resposta\n3. Lesão Renal Aguda KDIGO 1\n4. Desmame ventilatório em curso',
+                neuro: 'RASS 0. Despertar progressivo. Orientada no tempo e espaço.',
+                cardio: 'Dobutamina 5 mcg/kg/min + Noradrenalina 0.2 mcg/kg/min. FA controlada com Amiodarona.',
+                resp: 'Em desmame ventilatório (PSV 10 cmH2O). Gasometria estável.',
+                renal: 'LRA KDIGO 1 (Creatinina 1.5 mg/dL). Balanço hídrico negativo programado.',
+                vm_modo: 'PSV', vm_vc: '450', vm_fr: 14, vm_peep: '8', vm_pip: 18, vm_plato: '16', vm_fio2: 30,
+                balanco_entradas: 'Dieta enteral 1200ml\nMedicações 400ml\nSF 500ml',
+                balanco_saidas: 'Diurese 2500ml\nDreno torácico 150ml',
+                balanco_acumulado: '-1400 ml',
+                plano: '## PLANO TERAPÊUTICO\n\n### RESPIRATÓRIO\n- Progredir desmame da VM\n- TRE se tolerância boa\n\n### CARDIOVASCULAR\n- Manter inotrópicos atuais\n- Controle de FA\n\n### RENAL\n- Manter balanço hídrico negativo\n- Monitorizar função renal\n\n## PENDÊNCIAS\n- [ ] Ecocardiograma de controle\n- [ ] Avaliação de extubação',
+                sofa_resp: 1, sofa_coag: 1, sofa_liver: 0, sofa_cardio: 3, sofa_gcs: 1, sofa_renal: 1,
+                gcs_eyes: 4, gcs_verbal: 4, gcs_motor: 6,
+                ibw_altura: 162, ibw_sexo: 'F', pf_pao2: 120, pf_fio2: 30, raw_fluxo: 40, oi_pma: 10,
+                
+                // SMART-SED UTI
+                peso: 62, tempo_intubacao: 120, previsao_vm: 2,
+                rass_atual: 0, meta_rass: 0, meta_cpot: 2,
+                cpot_expressao: 0, cpot_movimentos: 0, cpot_tensao: 0, cpot_ventilador: 0,
+                fentanil_dose: 1.0, fentanil_concentracao: 50, fentanil_infusao: 1.24,
+                dexmedetomidina_dose: 0.6, dexmedetomidina_concentracao: 4, dexmedetomidina_infusao: 9.3,
+                observacoes_sedacao: 'Paciente em desmame da sedação. RASS 0 adequado para weaning. CPOT=0 indica analgesia eficaz.'
+            }
+        };
+
+        // Estado global da aplicação
+        let appState = {
+            patients: { ...initialPatients },
+            activePatientId: 'leito08',
+            activeTab: 'resumo',
+            isModalOpen: false
+        };
+
+        // Função para salvar dados
+        function saveData() {
+            try {
+                localStorage.setItem('utiAiData', JSON.stringify({
+                    patientDatabase: appState.patients,
+                    activePatientId: appState.activePatientId
+                }));
+            } catch (e) {
+                console.warn('Erro ao salvar dados:', e);
+            }
+        }
+
+        // Função para carregar dados
+        function loadData() {
+            try {
+                const savedData = localStorage.getItem('utiAiData');
+                if (savedData) {
+                    const parsed = JSON.parse(savedData);
+                    if (parsed.patientDatabase && Object.keys(parsed.patientDatabase).length > 0) {
+                        appState.patients = parsed.patientDatabase;
+                        appState.activePatientId = parsed.activePatientId || Object.keys(parsed.patientDatabase)[0];
+                    }
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar dados:', e);
+            }
+        }
+
+        // Função para atualizar UI
+        function updateUI() {
+            const app = document.getElementById('app');
+            if (!app) return;
+
+            const activePatient = appState.patients[appState.activePatientId];
+            
+            app.innerHTML = `
+                <div class="flex h-screen overflow-hidden bg-gray-900 text-gray-300">
+                    <!-- Sidebar -->
+                    <aside class="bg-gray-800 w-1/4 h-full p-4 overflow-y-auto flex flex-col">
+                        <div class="flex items-center mb-6 flex-shrink-0">
+                            <h1 class="text-2xl font-bold main-gradient-text">UTI.AI</h1>
+                            <span class="ml-2 text-xs font-semibold text-gray-400">Sistema Unificado</span>
+                        </div>
+                        
+                        <button onclick="addNewPatient()" class="w-full mb-4 btn-primary p-2 rounded-lg font-semibold flex-shrink-0">
+                            ➕ Adicionar Novo Paciente
+                        </button>
+                        
+                        <div class="flex-grow overflow-y-auto">
+                            <h2 class="text-lg font-semibold text-gray-300 mb-3 sticky top-0 bg-gray-800 py-1">Lista de Pacientes</h2>
+                            <div>
+                                ${Object.entries(appState.patients).map(([id, patient]) => `
+                                    <div class="p-4 rounded-lg mb-3 cursor-pointer transition-all duration-200 ease-in-out ${id === appState.activePatientId ? 'bg-gray-600 transform -translate-y-0.5 shadow-lg' : 'bg-gray-700 hover:bg-gray-600'}"
+                                         onclick="selectPatient('${id}')">
+                                        <h3 class="font-bold text-white">${patient.bed || 'Novo Leito'}</h3>
+                                        <p class="text-sm text-gray-300 truncate">${patient.name || 'Nome'}, ${patient.age || '--'} anos</p>
+                                        <p class="text-xs text-purple-400 mt-1 truncate">${patient.mainDiagnosis || 'Diagnóstico'}</p>
+                                        ${getPatientStatusBadge(patient)}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </aside>
+                    
+                    <!-- Main Content -->
+                    <main class="w-3/4 h-full p-6 overflow-y-auto flex flex-col">
+                        ${activePatient ? `
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h2 class="text-3xl font-bold text-white cursor-pointer hover:text-purple-400 transition-colors" 
+                                        onclick="openModal()" title="Clique para editar dados do paciente">
+                                        ${activePatient.bed} - ${activePatient.name}, ${activePatient.age} anos, ${activePatient.gender}
+                                    </h2>
+                                    <p class="text-gray-400">Diagnóstico Principal: ${activePatient.mainDiagnosis}</p>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <p class="text-sm text-gray-400">Admissão: <span class="font-semibold text-gray-300">${formatDate(activePatient.admissionDate)}</span></p>
+                                    <p class="text-sm text-gray-400">Dia de UTI: <span class="font-semibold text-gray-300">${activePatient.icuDay}</span></p>
+                                </div>
+                            </div>
+
+                            <div class="border-b border-gray-700 mb-6">
+                                <nav class="flex space-x-8 -mb-px">
+                                    ${renderTabs()}
+                                </nav>
+                            </div>
+                            
+                            <div class="flex-grow">
+                                ${renderTabContent(activePatient)}
+                            </div>
+                        ` : `
+                            <div class="flex items-center justify-center h-full">
+                                <div class="text-center">
+                                    <h2 class="text-2xl font-bold text-gray-400">Nenhum paciente selecionado.</h2>
+                                    <p class="text-gray-500">Adicione um novo paciente ou selecione um da lista.</p>
+                                </div>
+                            </div>
+                        `}
+                    </main>
+                </div>
+            `;
+        }
+
+        // Função para formatar data
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+            } catch {
+                return dateStr;
+            }
+        }
+
+        // Função para badge de status do paciente
+        function getPatientStatusBadge(patient) {
+            const cpotTotal = (parseInt(patient.cpot_expressao) || 0) + 
+                            (parseInt(patient.cpot_movimentos) || 0) + 
+                            (parseInt(patient.cpot_tensao) || 0) + 
+                            (parseInt(patient.cpot_ventilador) || 0);
+            
+            const rassAtual = parseInt(patient.rass_atual) || 0;
+            
+            if (cpotTotal <= 2 && rassAtual >= -1 && rassAtual <= 0) {
+                return '<div class="mt-2 text-xs bg-green-900/20 text-green-400 px-2 py-1 rounded">✅ SMART-SED: Adequado</div>';
+            } else if (cpotTotal > 2) {
+                return '<div class="mt-2 text-xs bg-red-900/20 text-red-400 px-2 py-1 rounded">🚨 SMART-SED: Dor Detectada</div>';
+            } else {
+                return '<div class="mt-2 text-xs bg-yellow-900/20 text-yellow-400 px-2 py-1 rounded">⚠️ SMART-SED: Ajuste</div>';
+            }
+        }
+
+        // Função para renderizar tabs
+        function renderTabs() {
+            const tabs = [
+                { key: 'resumo', label: 'Resumo', icon: '📄' },
+                { key: 'sistemas', label: 'Sistemas', icon: '🏥' },
+                { key: 'vm', label: 'VM', icon: '🫁' },
+                { key: 'scores', label: 'Scores', icon: '📊' },
+                { key: 'balanco', label: 'Balanço', icon: '💧' },
+                { key: 'plano', label: 'Plano', icon: '📋' },
+                { key: 'sedacao-analgesia', label: 'Sedação', icon: '🧠' },
+                { key: 'ia-intensivista', label: 'IA-Intensivista', icon: '🤖' }
+            ];
+
+            return tabs.map(tab => `
+                <button class="tab-button ${appState.activeTab === tab.key ? 'active' : ''}" 
+                        onclick="selectTab('${tab.key}')">
+                    ${tab.icon} ${tab.label}
+                </button>
+            `).join('');
+        }
+
+        // Função para renderizar conteúdo da aba
+        function renderTabContent(patient) {
+            switch (appState.activeTab) {
+                case 'resumo':
+                    return `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-700 p-4 rounded-lg">
+                                <label class="block text-sm font-medium text-gray-300 mb-1">História Resumida</label>
+                                <textarea rows="8" 
+                                          class="form-input" 
+                                          onchange="updatePatient('history', this.value)"
+                                          placeholder="História clínica do paciente...">${patient.history || ''}</textarea>
+                            </div>
+                            <div class="bg-gray-700 p-4 rounded-lg">
+                                <label class="block text-sm font-medium text-gray-300 mb-1">Lista de Problemas</label>
+                                <textarea rows="8" 
+                                          class="form-input" 
+                                          onchange="updatePatient('problems', this.value)"
+                                          placeholder="Problemas ativos do paciente...">${patient.problems || ''}</textarea>
+                            </div>
+                        </div>
+                    `;
+
+                case 'sistemas':
+                    return `
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-semibold text-purple-400">🧠 Neurológico</h4>
+                                <textarea rows="2" 
+                                          class="form-input mt-1" 
+                                          onchange="updatePatient('neuro', this.value)"
+                                          placeholder="Avaliação neurológica...">${patient.neuro || ''}</textarea>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-purple-400">❤️ Cardiovascular</h4>
+                                <textarea rows="2" 
+                                          class="form-input mt-1" 
+                                          onchange="updatePatient('cardio', this.value)"
+                                          placeholder="Avaliação cardiovascular...">${patient.cardio || ''}</textarea>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-purple-400">🫁 Respiratório</h4>
+                                <textarea rows="2" 
+                                          class="form-input mt-1" 
+                                          onchange="updatePatient('resp', this.value)"
+                                          placeholder="Avaliação respiratória...">${patient.resp || ''}</textarea>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-purple-400">🫘 Renal / Metabólico</h4>
+                                <textarea rows="2" 
+                                          class="form-input mt-1" 
+                                          onchange="updatePatient('renal', this.value)"
+                                          placeholder="Avaliação renal/metabólica...">${patient.renal || ''}</textarea>
+                            </div>
+                        </div>
+                    `;
+
+                case 'sedacao-analgesia':
+                    return renderSedacaoContent(patient);
+
+                case 'scores':
+                    return renderScoresContent(patient);
+
+                case 'balanco':
+                    return `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-700 p-4 rounded-lg">
+                                <h4 class="font-semibold text-white mb-2">💧 Entradas (listar valores em ml)</h4>
+                                <textarea rows="6" 
+                                          class="form-input" 
+                                          onchange="updatePatient('balanco_entradas', this.value)"
+                                          placeholder="SF 0.9% 1500ml...">${patient.balanco_entradas || ''}</textarea>
+                            </div>
+                            <div class="bg-gray-700 p-4 rounded-lg">
+                                <h4 class="font-semibold text-white mb-2">💧 Saídas (listar valores em ml)</h4>
+                                <textarea rows="6" 
+                                          class="form-input" 
+                                          onchange="updatePatient('balanco_saidas', this.value)"
+                                          placeholder="Diurese 1200ml...">${patient.balanco_saidas || ''}</textarea>
+                            </div>
+                        </div>
+                        <div class="mt-6 text-center">
+                            <h4 class="text-lg font-semibold text-white">
+                                Balanço Acumulado: 
+                                <input class="form-input inline-block w-48 p-1 text-center font-bold ml-2"
+                                       value="${patient.balanco_acumulado || ''}"
+                                       onchange="updatePatient('balanco_acumulado', this.value)"
+                                       placeholder="+0 ml">
+                            </h4>
+                        </div>
+                    `;
+
+                case 'plano':
+                    return `
+                        <textarea rows="18" 
+                                  class="form-input" 
+                                  onchange="updatePatient('plano', this.value)"
+                                  placeholder="## PLANO TERAPÊUTICO...">${patient.plano || ''}</textarea>
+                    `;
+
+                case 'ia-intensivista':
+                    return `
+                        <div class="text-center">
+                            <h3 class="text-2xl font-bold text-white mb-2">Análise do <span class="main-gradient-text">IA-Intensivista</span></h3>
+                            <p class="text-gray-400 mb-6">Funcionalidade de IA em desenvolvimento...</p>
+                            <button class="btn-primary px-8 py-3 text-lg rounded-lg">
+                                🤖 Analisar Paciente
+                            </button>
+                            <div class="mt-8 bg-gray-800 p-4 rounded-lg">
+                                <p class="text-gray-400">A análise de IA especializada será implementada em breve.</p>
+                            </div>
+                        </div>
+                    `;
+
+                default:
+                    return `
+                        <div class="text-center text-gray-400">
+                            <h3 class="text-xl font-bold mb-4">Aba ${appState.activeTab}</h3>
+                            <p>Conteúdo em desenvolvimento...</p>
+                        </div>
+                    `;
+            }
+        }
+
+        // Renderizar conteúdo de sedação
+        function renderSedacaoContent(patient) {
+            const cpotTotal = (parseInt(patient.cpot_expressao) || 0) + 
+                            (parseInt(patient.cpot_movimentos) || 0) + 
+                            (parseInt(patient.cpot_tensao) || 0) + 
+                            (parseInt(patient.cpot_ventilador) || 0);
+            
+            const rassAtual = parseInt(patient.rass_atual) || 0;
+            const peso = parseFloat(patient.peso) || 70;
+
+            return `
+                <div class="space-y-6">
+                    <!-- Header da Sedação -->
+                    <div class="bg-gradient-to-r from-purple-900/30 to-blue-900/30 p-4 rounded-lg border border-purple-500/30">
+                        <h3 class="text-xl font-bold text-white mb-2">🧠 Protocolo SMART-SED</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <span class="text-gray-400">Peso: </span>
+                                <span class="text-white font-semibold">${peso.toFixed(1)} kg</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400">CPOT Total: </span>
+                                <span class="font-semibold ${cpotTotal <= 2 ? 'text-green-400' : cpotTotal <= 4 ? 'text-yellow-400' : 'text-red-400'}">${cpotTotal}/8</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-400">RASS Atual: </span>
+                                <span class="font-semibold ${rassAtual >= -1 && rassAtual <= 0 ? 'text-green-400' : rassAtual > 0 ? 'text-red-400' : 'text-yellow-400'}">${rassAtual >= 0 ? '+' : ''}${rassAtual}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Avaliação CPOT -->
+                    <div class="bg-gray-800 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-purple-400 mb-4">Escala CPOT - Avaliação de Dor</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Expressão Facial</label>
+                                <div class="space-y-2">
+                                    ${[0, 1, 2].map(valor => `
+                                        <button class="w-full p-2 text-left border rounded transition-all ${parseInt(patient.cpot_expressao) === valor ? 'bg-purple-600 border-purple-500 text-white' : 'border-gray-600 hover:border-purple-400'}"
+                                                onclick="updatePatient('cpot_expressao', ${valor})">
+                                            <span class="font-bold">${valor}</span> - ${['Relaxada', 'Tensa', 'Contraída'][valor]}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Movimentos</label>
+                                <div class="space-y-2">
+                                    ${[0, 1, 2].map(valor => `
+                                        <button class="w-full p-2 text-left border rounded transition-all ${parseInt(patient.cpot_movimentos) === valor ? 'bg-purple-600 border-purple-500 text-white' : 'border-gray-600 hover:border-purple-400'}"
+                                                onclick="updatePatient('cpot_movimentos', ${valor})">
+                                            <span class="font-bold">${valor}</span> - ${['Ausentes', 'Proteção', 'Agitação'][valor]}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Tensão Muscular</label>
+                                <div class="space-y-2">
+                                    ${[0, 1, 2].map(valor => `
+                                        <button class="w-full p-2 text-left border rounded transition-all ${parseInt(patient.cpot_tensao) === valor ? 'bg-purple-600 border-purple-500 text-white' : 'border-gray-600 hover:border-purple-400'}"
+                                                onclick="updatePatient('cpot_tensao', ${valor})">
+                                            <span class="font-bold">${valor}</span> - ${['Relaxado', 'Tenso', 'Muito Tenso'][valor]}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Ventilador</label>
+                                <div class="space-y-2">
+                                    ${[0, 1, 2].map(valor => `
+                                        <button class="w-full p-2 text-left border rounded transition-all ${parseInt(patient.cpot_ventilador) === valor ? 'bg-purple-600 border-purple-500 text-white' : 'border-gray-600 hover:border-purple-400'}"
+                                                onclick="updatePatient('cpot_ventilador', ${valor})">
+                                            <span class="font-bold">${valor}</span> - ${['Tolerando', 'Tosse', 'Fighting'][valor]}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center p-4 bg-gray-700 rounded border-t border-gray-600">
+                            <div class="text-2xl font-bold text-white mb-2">CPOT Total: ${cpotTotal}/8</div>
+                            <div class="text-lg font-semibold ${cpotTotal <= 2 ? 'text-green-400' : cpotTotal <= 4 ? 'text-yellow-400' : 'text-red-400'}">
+                                ${cpotTotal <= 2 ? '✅ Analgesia Adequada' : cpotTotal <= 4 ? '⚠️ Dor Leve' : '🚨 Dor Significativa'}
+                            </div>
+                            ${cpotTotal > 2 ? `
+                                <div class="mt-3 p-3 bg-yellow-900/20 border border-yellow-500 rounded">
+                                    <div class="text-yellow-400 font-semibold">Protocolo Analgesia-First</div>
+                                    <div class="text-sm text-yellow-300 mt-1">
+                                        • Otimizar analgesia antes de ajustar sedação<br/>
+                                        • Investigar causas de desconforto<br/>
+                                        • Reavaliação em ${cpotTotal > 4 ? '30-60' : '60-120'} minutos
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Avaliação RASS -->
+                    <div class="bg-gray-800 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-purple-400 mb-4">Escala RASS - Nível de Sedação</h3>
+                        
+                        <div class="mb-4 p-3 bg-green-900/20 border border-green-500 rounded">
+                            <div class="text-green-400 font-semibold">Meta RASS: -1 a 0</div>
+                            <div class="text-sm text-green-300">Sonolento mas desperta facilmente ou alerta e calmo</div>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                            ${[-5, -4, -3, -2, -1, 0, 1, 2, 3, 4].map(valor => `
+                                <button class="p-3 border rounded text-center transition-all ${parseInt(patient.rass_atual) === valor ? 
+                                    (valor >= -1 && valor <= 0 ? 'bg-green-600 border-green-500 text-white' :
+                                     valor > 0 ? 'bg-red-600 border-red-500 text-white' :
+                                     'bg-purple-600 border-purple-500 text-white') :
+                                    'border-gray-600 hover:border-purple-400'}"
+                                        onclick="updatePatient('rass_atual', ${valor})">
+                                    <div class="font-bold text-lg">${valor >= 0 ? '+' : ''}${valor}</div>
+                                    <div class="text-xs">
+                                        ${valor === 4 ? 'Combativo' :
+                                          valor === 3 ? 'Muito Agitado' :
+                                          valor === 2 ? 'Agitado' :
+                                          valor === 1 ? 'Inquieto' :
+                                          valor === 0 ? 'Alerta' :
+                                          valor === -1 ? 'Sonolento' :
+                                          valor === -2 ? 'Sedação Leve' :
+                                          valor === -3 ? 'Sedação Moderada' :
+                                          valor === -4 ? 'Sedação Profunda' :
+                                          'Não Desperta'}
+                                    </div>
+                                    ${(valor >= -1 && valor <= 0) ? '<div class="text-xs mt-1">🎯 META</div>' : ''}
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <div class="mt-4 text-center p-3 bg-gray-700 rounded">
+                            <div class="text-white font-semibold">RASS Atual: ${rassAtual >= 0 ? '+' : ''}${rassAtual}</div>
+                            <div class="text-sm mt-1 ${rassAtual >= -1 && rassAtual <= 0 ? 'text-green-400' : rassAtual > 0 ? 'text-red-400' : 'text-yellow-400'}">
+                                ${rassAtual >= -1 && rassAtual <= 0 ? '✅ Meta RASS atingida' :
+                                  rassAtual > 0 ? '⚠️ Agitação - Considerar aumento da sedação' :
+                                  '📉 Sedação excessiva - Considerar redução'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medicamentos -->
+                    <div class="bg-gray-800 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-purple-400 mb-4">💊 Medicamentos em Uso</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                            ${renderMedicamentoCard('Fentanil', 'fentanil', patient, peso, 'mcg/kg/h', [50, 100])}
+                            ${renderMedicamentoCard('Propofol', 'propofol', patient, peso, 'mg/kg/h', [10, 20])}
+                            ${renderMedicamentoCard('Dexmedetomidina', 'dexmedetomidina', patient, peso, 'mcg/kg/h', [4, 100])}
+                            ${renderMedicamentoCard('Midazolam', 'midazolam', patient, peso, 'mg/kg/h', [1, 5])}
+                        </div>
+                    </div>
+
+                    <!-- Observações -->
+                    <div class="bg-gray-800 p-4 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-purple-400 mb-3">📝 Observações sobre Sedação/Analgesia</h3>
+                        <textarea rows="4" 
+                                  class="form-input" 
+                                  onchange="updatePatient('observacoes_sedacao', this.value)"
+                                  placeholder="Observações sobre ajustes de sedação, resposta do paciente, eventos adversos, planos de desmame...">${patient.observacoes_sedacao || ''}</textarea>
+                        
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">Tempo de Intubação (horas)</label>
+                                <input type="number" 
+                                       class="form-input" 
+                                       value="${patient.tempo_intubacao || ''}"
+                                       onchange="updatePatient('tempo_intubacao', this.value)"
+                                       placeholder="Ex: 72">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">Previsão VM (dias)</label>
+                                <input type="number" 
+                                       class="form-input" 
+                                       value="${patient.previsao_vm || ''}"
+                                       onchange="updatePatient('previsao_vm', this.value)"
+                                       placeholder="Ex: 5">
+                            </div>
+                        </div>
+
+                        <div class="mt-4 flex justify-center">
+                            <button onclick="updatePatient('ultima_avaliacao_sed', new Date().toISOString()); updateUI();" 
+                                    class="btn-primary px-4 py-2 rounded-lg font-semibold">
+                                ⏰ Registrar Avaliação Atual
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Renderizar card de medicamento
+        function renderMedicamentoCard(nome, codigo, patient, peso, unidade, concentracoes) {
+            const dose = parseFloat(patient[`${codigo}_dose`]) || 0;
+            const concentracao = parseFloat(patient[`${codigo}_concentracao`]) || concentracoes[0];
+            const infusao = dose > 0 && concentracao > 0 ? (dose * peso / concentracao).toFixed(2) : 0;
+
+            return `
+                <div class="bg-gray-700 p-3 rounded border border-gray-600">
+                    <h4 class="font-semibold text-white mb-3">${nome}</h4>
+                    
+                    <div class="space-y-2">
+                        <div>
+                            <label class="text-xs text-gray-400">Dose (${unidade})</label>
+                            <input type="number" 
+                                   step="0.1"
+                                   class="form-input text-center" 
+                                   value="${dose || ''}"
+                                   onchange="updatePatient('${codigo}_dose', this.value); calculateInfusion('${codigo}', ${peso})"
+                                   placeholder="0.0">
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs text-gray-400">Concentração</label>
+                            <select class="form-input" 
+                                    onchange="updatePatient('${codigo}_concentracao', this.value); calculateInfusion('${codigo}', ${peso})">
+                                <option value="">Selecionar</option>
+                                ${concentracoes.map(conc => `
+                                    <option value="${conc}" ${concentracao == conc ? 'selected' : ''}>${conc}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-3 pt-2 border-t border-gray-600">
+                        <span class="text-gray-400 text-sm">Infusão: </span>
+                        <span class="font-bold text-lg ${dose > 0 ? 'text-green-400' : 'text-gray-500'}">${infusao} mL/h</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Renderizar scores
+        function renderScoresContent(patient) {
+            const sofaTotal = ['sofa_resp', 'sofa_coag', 'sofa_liver', 'sofa_cardio', 'sofa_gcs', 'sofa_renal']
+                .reduce((acc, key) => acc + (parseInt(patient[key]) || 0), 0);
+            
+            const gcsTotal = ['gcs_eyes', 'gcs_verbal', 'gcs_motor']
+                .reduce((acc, key) => acc + (parseInt(patient[key]) || 0), 0);
+
+            return `
+                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div class="score-card">
+                        <h3 class="text-lg font-semibold text-purple-400 mb-3">SOFA Score</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>Respiratório:</span>
+                                <select class="form-input w-20 p-1 text-xs" onchange="updatePatient('sofa_resp', this.value)">
+                                    ${[0,1,2,3,4].map(val => `<option value="${val}" ${(patient.sofa_resp || 0) == val ? 'selected' : ''}>${val}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Coagulação:</span>
+                                <select class="form-input w-20 p-1 text-xs" onchange="updatePatient('sofa_coag', this.value)">
+                                    ${[0,1,2,3,4].map(val => `<option value="${val}" ${(patient.sofa_coag || 0) == val ? 'selected' : ''}>${val}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Fígado:</span>
+                                <select class="form-input w-20 p-1 text-xs" onchange="updatePatient('sofa_liver', this.value)">
+                                    ${[0,1,2,3,4].map(val => `<option value="${val}" ${(patient.sofa_liver || 0) == val ? 'selected' : ''}>${val}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Cardiovascular:</span>
+                                <select class="form-input w-20 p-1 text-xs" onchange="updatePatient('sofa_cardio', this.value)">
+                                    ${[0,1,2,3,4].map(val => `<option value="${val}" ${(patient.sofa_cardio || 0) == val ? 'selected' : ''}>${val}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Glasgow:</span>
+                                <select class="form-input w-20 p-1 text-xs" onchange="updatePatient('sofa_gcs', this.value)">
+                                    ${[0,1,2,3,4].map(val => `<option value="${val}" ${(patient.sofa_gcs || 0) == val ? 'selected' : ''}>${val}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Renal:</span>
+                                <select class="form-input w-20 p-1 text-xs" onchange="updatePatient('sofa_renal', this.value)">
+                                    ${[0,1,2,3,4].map(val => `<option value="${val}" ${(patient.sofa_renal || 0) == val ? 'selected' : ''}>${val}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-center pt-3 border-t border-gray-600">
+                            <span class="text-white font-semibold">Total: </span>
+                            <span class="main-gradient-text font-bold text-xl">${sofaTotal}</span>
+                        </div>
+                    </div>
+
+                    <div class="score-card">
+                        <h3 class="text-lg font-semibold text-purple-400 mb-3">Glasgow Coma Scale</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>Abertura Ocular:</span>
+                                <select class="form-input w-20 p-1 text-xs" onchange="updatePatient('gcs_eyes', this.value)">
+                                    <option value="4" ${(patient.gcs_eyes || 4) == 4 ? 'selected' : ''}>4</option>
+                                    <option value="3" ${(patient.gcs_eyes || 4) == 3 ? 'selected' : ''}>3</option>
+                                    <option value="2" ${(patient.gcs_eyes || 4) == 2 ? 'selected' : ''}>2</option>
+                                    <option value="1" ${(patient.gcs_eyes || 4) == 1 ? 'selected' : ''}>1</option>
+                                </select>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Resposta Verbal:</span>
+                                <select class="form-input w-20 p-1 text-xs" onchange="updatePatient('gcs_verbal', this.value)">
+                                    <option value="5" ${(patient.gcs_verbal || 5) == 5 ? 'selected' : ''}>5</option>
+                                    <option value="4" ${(patient.gcs_verbal || 5) == 4 ? 'selected' : ''}>4</option>
+                                    <option value="3" ${(patient.gcs_verbal || 5) == 3 ? 'selected' : ''}>3</option>
+                                    <option value="2" ${(patient.gcs_verbal || 5) == 2 ? 'selected' : ''}>2</option>
+                                    <option value="1" ${(patient.gcs_verbal || 5) == 1 ? 'selected' : ''}>1</option>
+                                </select>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Resposta Motora:</span>
+                                <select class="form-input w-20 p-1 text-xs" onchange="updatePatient('gcs_motor', this.value)">
+                                    <option value="6" ${(patient.gcs_motor || 6) == 6 ? 'selected' : ''}>6</option>
+                                    <option value="5" ${(patient.gcs_motor || 6) == 5 ? 'selected' : ''}>5</option>
+                                    <option value="4" ${(patient.gcs_motor || 6) == 4 ? 'selected' : ''}>4</option>
+                                    <option value="3" ${(patient.gcs_motor || 6) == 3 ? 'selected' : ''}>3</option>
+                                    <option value="2" ${(patient.gcs_motor || 6) == 2 ? 'selected' : ''}>2</option>
+                                    <option value="1" ${(patient.gcs_motor || 6) == 1 ? 'selected' : ''}>1</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-center pt-3 border-t border-gray-600">
+                            <span class="text-white font-semibold">Total: </span>
+                            <span class="main-gradient-text font-bold text-xl">${gcsTotal}</span>
+                        </div>
+                    </div>
+
+                    <div class="score-card">
+                        <h3 class="text-lg font-semibold text-purple-400 mb-3">Status Geral</h3>
+                        <div class="space-y-3">
+                            <div class="text-center">
+                                <div class="text-lg font-semibold text-white">SOFA: ${sofaTotal}</div>
+                                <div class="text-sm ${sofaTotal < 6 ? 'text-green-400' : sofaTotal < 10 ? 'text-yellow-400' : 'text-red-400'}">
+                                    ${sofaTotal < 6 ? 'Baixo risco' : sofaTotal < 10 ? 'Risco moderado' : 'Alto risco'}
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-lg font-semibold text-white">Glasgow: ${gcsTotal}</div>
+                                <div class="text-sm ${gcsTotal >= 13 ? 'text-green-400' : gcsTotal >= 9 ? 'text-yellow-400' : 'text-red-400'}">
+                                    ${gcsTotal >= 13 ? 'Leve' : gcsTotal >= 9 ? 'Moderado' : 'Grave'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Funções de interação
+        function selectPatient(patientId) {
+            appState.activePatientId = patientId;
+            updateUI();
+            saveData();
+        }
+
+        function selectTab(tabKey) {
+            appState.activeTab = tabKey;
+            updateUI();
+        }
+
+        function updatePatient(field, value) {
+            if (appState.activePatientId && appState.patients[appState.activePatientId]) {
+                appState.patients[appState.activePatientId][field] = value;
+                // Auto-save com debounce
+                clearTimeout(window.saveTimer);
+                window.saveTimer = setTimeout(() => {
+                    saveData();
+                    updateUI();
+                }, 1000);
+            }
+        }
+
+        function calculateInfusion(medicamento, peso) {
+            const patient = appState.patients[appState.activePatientId];
+            if (!patient) return;
+
+            const dose = parseFloat(patient[`${medicamento}_dose`]) || 0;
+            const concentracao = parseFloat(patient[`${medicamento}_concentracao`]) || 1;
+            
+            if (dose > 0 && concentracao > 0) {
+                const infusao = (dose * peso) / concentracao;
+                updatePatient(`${medicamento}_infusao`, infusao.toFixed(2));
+            }
+        }
+
+        function addNewPatient() {
+            const newId = `leito_new_${Date.now()}`;
+            const newName = prompt('Nome do paciente:') || 'Novo Paciente';
+            const newBed = prompt('Leito:') || 'Novo Leito';
+            
+            appState.patients[newId] = {
+                bed: newBed,
+                name: newName,
+                age: 65,
+                gender: 'Masculino',
+                admissionDate: new Date().toISOString().split('T')[0],
+                icuDay: 1,
+                mainDiagnosis: 'Diagnóstico a definir',
+                history: '',
+                problems: '',
+                neuro: '', cardio: '', resp: '', renal: '',
+                vm_modo: '', vm_vc: '', vm_fr: '', vm_peep: '', vm_pip: '', vm_plato: '', vm_fio2: '',
+                balanco_entradas: '', balanco_saidas: '', balanco_acumulado: '',
+                plano: '',
+                sofa_resp: 0, sofa_coag: 0, sofa_liver: 0, sofa_cardio: 0, sofa_gcs: 0, sofa_renal: 0,
+                gcs_eyes: 4, gcs_verbal: 5, gcs_motor: 6,
+                ibw_altura: '', ibw_sexo: 'M', pf_pao2: '', pf_fio2: '', raw_fluxo: '', oi_pma: '',
+                
+                // SMART-SED
+                peso: 70, tempo_intubacao: 0, previsao_vm: 3,
+                rass_atual: 0, meta_rass: -1, meta_cpot: 2,
+                cpot_expressao: 0, cpot_movimentos: 0, cpot_tensao: 0, cpot_ventilador: 0,
+                fentanil_dose: 0, fentanil_concentracao: 50, fentanil_infusao: 0,
+                propofol_dose: 0, propofol_concentracao: 10, propofol_infusao: 0,
+                dexmedetomidina_dose: 0, dexmedetomidina_concentracao: 4, dexmedetomidina_infusao: 0,
+                midazolam_dose: 0, midazolam_concentracao: 1, midazolam_infusao: 0,
+                observacoes_sedacao: ''
+            };
+            
+            appState.activePatientId = newId;
+            updateUI();
+            saveData();
+        }
+
+        function openModal() {
+            alert('Modal de edição será implementado em breve!');
+        }
+
+        // Inicialização
+        function initApp() {
+            loadData();
+            
+            // Ocultar loading e mostrar app
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('app').classList.remove('hidden');
+            
+            updateUI();
+        }
+
+        // Aguardar carregamento completo
+        window.addEventListener('load', () => {
+            setTimeout(initApp, 1000);
+        });
+
+        // Fallback
+        if (document.readyState === 'complete') {
+            setTimeout(initApp, 1000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    
+    <!-- Título e Descrição -->
+    <title>UTI.AI - Sistema Inteligente de Cuidados Intensivos</title>
+    <meta name="description" content="Sistema integrado para manejo do paciente crítico com IA especializada, protocolos de sedação/analgesia e análise clínica avançada">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- Ícones e Favicons -->
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="icon" type="image/png" href="./icon-192.png" sizes="192x192">
+    <link rel="icon" type="image/png" href="./icon-512.png" sizes="512x512">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+    
+    <!-- Meta Tags PWA -->
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="UTI.AI">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Meta Tags Open Graph -->
+    <meta property="og:title" content="UTI.AI - Sistema Inteligente de Cuidados Intensivos">
+    <meta property="og:description" content="Manejo avançado do paciente crítico com IA especializada">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="./icon-512.png">
+    
+    <!-- Preconnect para otimização -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- React e ReactDOM via CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #d1d5db;
+        }
+        /* Scrollbar customization */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+        .main-gradient-text {
+            background: linear-gradient(to right, #4f46e5, #c026d3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn-primary {
+            background-image: linear-gradient(to right, #4f46e5 0%, #a855f7 51%, #4f46e5 100%);
+            background-size: 200% auto;
+            color: white;
+            transition: 0.5s;
+        }
+        .btn-primary:hover {
+            background-position: right center;
+        }
+        .loader {
+            border: 4px solid #374151;
+            border-top: 4px solid #6d28d9;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Loading screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #111827;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .loading-screen.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader"></div>
+        <h2 style="color: #f8fafc; margin-top: 20px; font-size: 24px;">🏥 UTI.AI</h2>
+        <p style="color: #cbd5e1; margin-top: 10px;">Carregando Sistema de Cuidados Intensivos...</p>
+    </div>
+    
+    <noscript>
+        <div style="padding: 20px; text-align: center; font-family: sans-serif; background: #111827; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
+            <h1>JavaScript Necessário</h1>
+            <p>O UTI.AI requer JavaScript habilitado para funcionar corretamente.</p>
+        </div>
+    </noscript>
+    
+    <div id="root"></div>
+    
+    <!-- Script principal da aplicação -->
+    <script type="text/babel" data-type="module">
+        // Dados e tipos principais
+        const Tab = {
+            Resumo: 'resumo',
+            Sistemas: 'sistemas',
+            VM: 'vm',
+            Scores: 'scores',
+            Balanco: 'balanco',
+            Plano: 'plano',
+            Sedacao: 'sedacao-analgesia',
+            IA: 'ia-intensivista',
+        };
+
+        // Dados iniciais dos pacientes
+        const INITIAL_PATIENTS = {
+            'leito08': { 
+                bed: 'Leito 08', name: 'João Silva Santos', age: 65, gender: 'Masculino', 
+                admissionDate: '2025-09-10', icuDay: 3, mainDiagnosis: 'Choque Séptico de Foco Pulmonar',
+                history: 'Paciente admitido por quadro de pneumonia comunitária grave que evoluiu com insuficiência respiratória e choque séptico necessitando de intubação orotraqueal e suporte com drogas vasoativas.',
+                problems: '1. Choque Séptico de Foco Pulmonar\n2. SARA Moderada (P/F 140)\n3. Lesão Renal Aguda KDIGO 2\n4. Acidose metabólica compensada',
+                neuro: 'RASS -2 (Propofol 15ml/h + Fentanil 3.75ml/h). Glasgow 3T. Pupilas isofotorreagentes.',
+                cardio: 'Noradrenalina 0.5 mcg/kg/min para manter PAM > 65 mmHg. Débito urinário 0.8 ml/kg/h.',
+                resp: 'SARA moderada com P/F de 140. Paciente pronado 16h/dia. VM protetora.',
+                renal: 'LRA KDIGO 2 (Creatinina 2.1 mg/dL). Gasometria: pH 7.28, PaCO2 42, HCO3 18, Lactato 3.8.',
+                vm_modo: 'PCV', vm_vc: '380', vm_fr: 20, vm_peep: '12', vm_pip: 30, vm_plato: '27', vm_fio2: 60,
+                balanco_entradas: 'SF 0.9% 1500ml\nDieta enteral 1000ml\nMedicações 200ml\nHemoderivados 0ml',
+                balanco_saidas: 'Diurese 1200ml\nPerdas insensíveis 800ml',
+                balanco_acumulado: '+2800 ml',
+                plano: '## PLANO TERAPÊUTICO\n\n### RESPIRATÓRIO\n- Manter ventilação protetora (VC ≤6ml/kg)\n- Posição prona 16h/dia\n- Meta P/F >150\n\n### CARDIOVASCULAR\n- Desmame progressivo de vasopressor\n- Meta PAM 65-70 mmHg\n\n### INFECCIOSO\n- Tazocin D3/7\n- Reavaliar antibioticoterapia conforme culturas\n\n## PENDÊNCIAS\n- [ ] Coletar hemocultura de controle\n- [ ] Gasometria de controle às 14h\n- [ ] Discussão sobre traqueostomia',
+                sofa_resp: 3, sofa_coag: 2, sofa_liver: 0, sofa_cardio: 4, sofa_gcs: 4, sofa_renal: 2,
+                gcs_eyes: 1, gcs_verbal: 1, gcs_motor: 1,
+                ibw_altura: 175, ibw_sexo: 'M', pf_pao2: 84, pf_fio2: 60, raw_fluxo: 60, oi_pma: 18,
+                
+                // SMART-SED UTI - Dados de Sedação e Analgesia
+                peso: 75, tempo_intubacao: 72, previsao_vm: 7,
+                rass_atual: -2, meta_rass: -1, meta_cpot: 2,
+                cpot_expressao: 1, cpot_movimentos: 0, cpot_tensao: 1, cpot_ventilador: 1,
+                fentanil_dose: 2.5, fentanil_concentracao: 50, fentanil_infusao: 3.75,
+                propofol_dose: 2.0, propofol_concentracao: 10, propofol_infusao: 15.0,
+                dexmedetomidina_dose: 0, dexmedetomidina_concentracao: 0, dexmedetomidina_infusao: 0,
+                midazolam_dose: 0, midazolam_concentracao: 0, midazolam_infusao: 0,
+                observacoes_sedacao: 'Paciente com sedação moderada em propofol + fentanil. CPOT=3 sugere dor residual. Considerar otimização da analgesia antes de aumentar sedação. Próxima avaliação em 2h.'
+            },
+            'leito12': { 
+                bed: 'Leito 12', name: 'Maria Aparecida Costa', age: 78, gender: 'Feminino', 
+                admissionDate: '2025-09-08', icuDay: 5, mainDiagnosis: 'Pós-operatório de Revascularização do Miocárdio',
+                history: 'Paciente submetida a cirurgia de revascularização do miocárdio de urgência por IAMCSST. Evoluiu no pós-operatório com baixo débito cardíaco e necessidade de suporte inotrópico.',
+                problems: '1. Choque Cardiogênico pós CRM\n2. Fibrilação Atrial de alta resposta\n3. Lesão Renal Aguda KDIGO 1\n4. Desmame ventilatório em curso',
+                neuro: 'RASS 0. Despertar progressivo. Orientada no tempo e espaço.',
+                cardio: 'Dobutamina 5 mcg/kg/min + Noradrenalina 0.2 mcg/kg/min. FA controlada com Amiodarona.',
+                resp: 'Em desmame ventilatório (PSV 10 cmH2O). Gasometria estável.',
+                renal: 'LRA KDIGO 1 (Creatinina 1.5 mg/dL). Balanço hídrico negativo programado.',
+                vm_modo: 'PSV', vm_vc: '450', vm_fr: 14, vm_peep: '8', vm_pip: 18, vm_plato: '16', vm_fio2: 30,
+                balanco_entradas: 'Dieta enteral 1200ml\nMedicações 400ml\nSF 500ml',
+                balanco_saidas: 'Diurese 2500ml\nDreno torácico 150ml',
+                balanco_acumulado: '-1400 ml',
+                plano: '## PLANO TERAPÊUTICO\n\n### RESPIRATÓRIO\n- Progredir desmame da VM\n- TRE se tolerância boa\n\n### CARDIOVASCULAR\n- Manter inotrópicos atuais\n- Controle de FA\n\n### RENAL\n- Manter balanço hídrico negativo\n- Monitorizar função renal\n\n## PENDÊNCIAS\n- [ ] Ecocardiograma de controle\n- [ ] Avaliação de extubação',
+                sofa_resp: 1, sofa_coag: 1, sofa_liver: 0, sofa_cardio: 3, sofa_gcs: 1, sofa_renal: 1,
+                gcs_eyes: 4, gcs_verbal: 4, gcs_motor: 6,
+                ibw_altura: 162, ibw_sexo: 'F', pf_pao2: 120, pf_fio2: 30, raw_fluxo: 40, oi_pma: 10,
+                
+                // SMART-SED UTI - Dados de Sedação e Analgesia
+                peso: 62, tempo_intubacao: 120, previsao_vm: 2,
+                rass_atual: 0, meta_rass: 0, meta_cpot: 2,
+                cpot_expressao: 0, cpot_movimentos: 0, cpot_tensao: 0, cpot_ventilador: 0,
+                fentanil_dose: 1.0, fentanil_concentracao: 50, fentanil_infusao: 1.24,
+                propofol_dose: 0, propofol_concentracao: 0, propofol_infusao: 0,
+                dexmedetomidina_dose: 0.6, dexmedetomidina_concentracao: 4, dexmedetomidina_infusao: 9.3,
+                midazolam_dose: 0, midazolam_concentracao: 0, midazolam_infusao: 0,
+                observacoes_sedacao: 'Paciente em desmame da sedação. Transicionado de propofol para dexmedetomidina. RASS 0 adequado para weaning. CPOT=0 indica analgesia eficaz. Próxima avaliação em 4h.'
+            }
+        };
+
+        const BLANK_PATIENT = {
+            bed: 'Novo Leito', name: '', age: '', gender: 'Masculino',
+            admissionDate: new Date().toISOString().split('T')[0], icuDay: 1,
+            mainDiagnosis: '', history: '', problems: '', neuro: '', cardio: '', resp: '', renal: '',
+            vm_modo: '', vm_vc: '', vm_fr: '', vm_peep: '', vm_pip: '', vm_plato: '', vm_fio2: '',
+            balanco_entradas: '', balanco_saidas: '', balanco_acumulado: '', plano: '',
+            sofa_resp: 0, sofa_coag: 0, sofa_liver: 0, sofa_cardio: 0, sofa_gcs: 0, sofa_renal: 0,
+            gcs_eyes: 4, gcs_verbal: 5, gcs_motor: 6, ibw_altura: '', ibw_sexo: 'M',
+            pf_pao2: '', pf_fio2: '', raw_fluxo: '', oi_pma: '',
+            
+            // SMART-SED UTI - Campos padrão para novos pacientes
+            peso: 70, tempo_intubacao: 0, previsao_vm: 3,
+            rass_atual: 0, meta_rass: -1, meta_cpot: 2,
+            cpot_expressao: 0, cpot_movimentos: 0, cpot_tensao: 0, cpot_ventilador: 0,
+            fentanil_dose: 0, fentanil_concentracao: 50, fentanil_infusao: 0,
+            propofol_dose: 0, propofol_concentracao: 10, propofol_infusao: 0,
+            dexmedetomidina_dose: 0, dexmedetomidina_concentracao: 4, dexmedetomidina_infusao: 0,
+            midazolam_dose: 0, midazolam_concentracao: 1, midazolam_infusao: 0,
+            observacoes_sedacao: ''
+        };
+
+        // Componente principal da aplicação
+        function UTIAIApp() {
+            const [patients, setPatients] = React.useState(INITIAL_PATIENTS);
+            const [activePatientId, setActivePatientId] = React.useState('leito08');
+            const [activeTab, setActiveTab] = React.useState(Tab.Resumo);
+            const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+            // Carregar dados salvos
+            React.useEffect(() => {
+                try {
+                    const savedData = localStorage.getItem('utiAiData');
+                    if (savedData) {
+                        const parsed = JSON.parse(savedData);
+                        if (parsed.patientDatabase && Object.keys(parsed.patientDatabase).length > 0) {
+                            setPatients(parsed.patientDatabase);
+                            setActivePatientId(parsed.activePatientId || Object.keys(parsed.patientDatabase)[0]);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Erro ao carregar dados salvos:', e);
+                }
+            }, []);
+
+            // Auto-save
+            React.useEffect(() => {
+                const timer = setTimeout(() => {
+                    if (Object.keys(patients).length > 0 && activePatientId) {
+                        localStorage.setItem('utiAiData', JSON.stringify({
+                            patientDatabase: patients,
+                            activePatientId
+                        }));
+                    }
+                }, 2000);
+                return () => clearTimeout(timer);
+            }, [patients, activePatientId]);
+
+            const activePatient = activePatientId ? patients[activePatientId] : null;
+
+            const handleSelectPatient = (id) => {
+                setActivePatientId(id);
+            };
+
+            const handleUpdatePatient = React.useCallback((updatedData) => {
+                if (!activePatientId) return;
+                setPatients(prev => ({
+                    ...prev,
+                    [activePatientId]: { ...prev[activePatientId], ...updatedData },
+                }));
+            }, [activePatientId]);
+
+            const handleAddPatient = () => {
+                const newId = `leito_new_${Date.now()}`;
+                const newPatient = { ...BLANK_PATIENT };
+                setPatients(prev => ({ ...prev, [newId]: newPatient }));
+                setActivePatientId(newId);
+                setIsModalOpen(true);
+            };
+
+            // Componentes
+            const PatientCard = ({ patient, isActive, onClick }) => (
+                React.createElement('div', {
+                    className: `p-4 rounded-lg mb-3 cursor-pointer transition-all duration-200 ease-in-out ${isActive ? 'bg-gray-600 transform -translate-y-0.5 shadow-lg' : 'bg-gray-700 hover:bg-gray-600'}`,
+                    onClick
+                }, [
+                    React.createElement('h3', { className: 'font-bold text-white', key: 'name' }, patient.bed || 'Novo Leito'),
+                    React.createElement('p', { className: 'text-sm text-gray-300 truncate', key: 'info' }, `${patient.name || 'Nome'}, ${patient.age || '--'} anos`),
+                    React.createElement('p', { className: 'text-xs text-purple-400 mt-1 truncate', key: 'diagnosis' }, patient.mainDiagnosis || 'Diagnóstico')
+                ])
+            );
+
+            const Sidebar = () => (
+                React.createElement('aside', { className: 'bg-gray-800 w-1/4 h-full p-4 overflow-y-auto flex flex-col' }, [
+                    React.createElement('div', { className: 'flex items-center mb-6 flex-shrink-0', key: 'header' }, [
+                        React.createElement('h1', { className: 'text-2xl font-bold main-gradient-text', key: 'title' }, 'UTI.AI'),
+                        React.createElement('span', { className: 'ml-2 text-xs font-semibold text-gray-400', key: 'subtitle' }, 'Sistema Unificado')
+                    ]),
+                    React.createElement('button', { 
+                        onClick: handleAddPatient, 
+                        className: 'w-full mb-4 btn-primary p-2 rounded-lg font-semibold flex-shrink-0',
+                        key: 'add-btn' 
+                    }, '➕ Adicionar Novo Paciente'),
+                    React.createElement('div', { className: 'flex-grow overflow-y-auto', key: 'patients' }, [
+                        React.createElement('h2', { className: 'text-lg font-semibold text-gray-300 mb-3 sticky top-0 bg-gray-800 py-1', key: 'patients-title' }, 'Lista de Pacientes'),
+                        React.createElement('div', { key: 'patients-list' }, 
+                            Object.entries(patients).map(([id, patient]) => 
+                                React.createElement(PatientCard, { 
+                                    key: id, 
+                                    patient, 
+                                    isActive: id === activePatientId, 
+                                    onClick: () => handleSelectPatient(id)
+                                })
+                            )
+                        )
+                    ])
+                ])
+            );
+
+            const TabButton = ({ label, icon, tabKey, activeTab, isGradient = false, onClick }) => {
+                const isActive = activeTab === tabKey;
+                const activeClasses = 'text-white border-purple-600';
+                const inactiveClasses = 'text-gray-400 border-transparent hover:text-white hover:border-purple-600';
+                const gradientClass = isGradient ? 'main-gradient-text font-bold' : '';
+
+                return React.createElement('button', {
+                    onClick: () => onClick(tabKey),
+                    className: `py-4 px-1 transition-all duration-200 ease-in-out border-b-2 ${isActive ? activeClasses : inactiveClasses} ${gradientClass}`
+                }, `${icon} ${label}`);
+            };
+
+            const MainContent = () => {
+                if (!activePatient) {
+                    return React.createElement('main', { className: 'w-3/4 h-full p-6 overflow-y-auto flex items-center justify-center' }, 
+                        React.createElement('div', { className: 'text-center' }, [
+                            React.createElement('h2', { className: 'text-2xl font-bold text-gray-400', key: 'title' }, 'Nenhum paciente selecionado.'),
+                            React.createElement('p', { className: 'text-gray-500', key: 'subtitle' }, 'Adicione um novo paciente ou selecione um da lista.')
+                        ])
+                    );
+                }
+
+                const admissionDateFormatted = React.useMemo(() => {
+                    if (!activePatient?.admissionDate) return '';
+                    try {
+                        return new Date(activePatient.admissionDate + 'T00:00:00').toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+                    } catch {
+                        return '';
+                    }
+                }, [activePatient?.admissionDate]);
+
+                const renderTabContent = () => {
+                    switch (activeTab) {
+                        case Tab.Resumo:
+                            return React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-6' }, [
+                                React.createElement('div', { className: 'bg-gray-700 p-4 rounded-lg', key: 'history' }, [
+                                    React.createElement('label', { className: 'block text-sm font-medium text-gray-300 mb-1', key: 'label' }, 'História Resumida'),
+                                    React.createElement('textarea', {
+                                        rows: 8,
+                                        value: activePatient.history || '',
+                                        onChange: (e) => handleUpdatePatient({ history: e.target.value }),
+                                        className: 'form-input bg-gray-700 border border-gray-600 text-gray-300 rounded-md transition-colors duration-200 w-full p-2 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/50',
+                                        key: 'textarea'
+                                    })
+                                ]),
+                                React.createElement('div', { className: 'bg-gray-700 p-4 rounded-lg', key: 'problems' }, [
+                                    React.createElement('label', { className: 'block text-sm font-medium text-gray-300 mb-1', key: 'label' }, 'Lista de Problemas'),
+                                    React.createElement('textarea', {
+                                        rows: 8,
+                                        value: activePatient.problems || '',
+                                        onChange: (e) => handleUpdatePatient({ problems: e.target.value }),
+                                        className: 'form-input bg-gray-700 border border-gray-600 text-gray-300 rounded-md transition-colors duration-200 w-full p-2 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/50',
+                                        key: 'textarea'
+                                    })
+                                ])
+                            ]);
+
+                        case Tab.Sedacao:
+                            // Calcular totais
+                            const cpotTotal = (parseInt(activePatient.cpot_expressao) || 0) + 
+                                            (parseInt(activePatient.cpot_movimentos) || 0) + 
+                                            (parseInt(activePatient.cpot_tensao) || 0) + 
+                                            (parseInt(activePatient.cpot_ventilador) || 0);
+                            
+                            const rassAtual = parseInt(activePatient.rass_atual) || 0;
+                            const peso = parseFloat(activePatient.peso) || 70;
+
+                            return React.createElement('div', { className: 'space-y-6' }, [
+                                // Header da Sedação
+                                React.createElement('div', { 
+                                    className: 'bg-gradient-to-r from-purple-900/30 to-blue-900/30 p-4 rounded-lg border border-purple-500/30',
+                                    key: 'header'
+                                }, [
+                                    React.createElement('h3', { 
+                                        className: 'text-xl font-bold text-white mb-2 flex items-center',
+                                        key: 'title'
+                                    }, '🧠 Protocolo SMART-SED'),
+                                    React.createElement('div', { 
+                                        className: 'grid grid-cols-1 md:grid-cols-3 gap-4 text-sm',
+                                        key: 'info'
+                                    }, [
+                                        React.createElement('div', { key: 'peso' }, [
+                                            React.createElement('span', { className: 'text-gray-400' }, 'Peso: '),
+                                            React.createElement('span', { className: 'text-white font-semibold' }, `${peso.toFixed(1)} kg`)
+                                        ]),
+                                        React.createElement('div', { key: 'avaliacao' }, [
+                                            React.createElement('span', { className: 'text-gray-400' }, 'Última Avaliação: '),
+                                            React.createElement('span', { className: 'text-white font-semibold' }, 
+                                                activePatient.ultima_avaliacao_sed ? 
+                                                    new Date(activePatient.ultima_avaliacao_sed).toLocaleTimeString('pt-BR') : 
+                                                    'Não avaliado'
+                                            )
+                                        ]),
+                                        React.createElement('div', { key: 'status' }, [
+                                            React.createElement('span', { className: 'text-gray-400' }, 'Status: '),
+                                            React.createElement('span', { 
+                                                className: `font-semibold ${
+                                                    cpotTotal <= 2 && rassAtual >= -1 && rassAtual <= 0 ? 'text-green-400' :
+                                                    cpotTotal > 2 ? 'text-red-400' :
+                                                    'text-yellow-400'
+                                                }`
+                                            }, 
+                                                cpotTotal <= 2 && rassAtual >= -1 && rassAtual <= 0 ? '✅ Adequado' :
+                                                cpotTotal > 2 ? '🚨 Dor Detectada' :
+                                                '⚠️ Ajuste Necessário'
+                                            )
+                                        ])
+                                    ])
+                                ]),
+
+                                // Scores RASS e CPOT
+                                React.createElement('div', { 
+                                    className: 'grid grid-cols-1 xl:grid-cols-2 gap-6',
+                                    key: 'scores'
+                                }, [
+                                    // CPOT Score
+                                    React.createElement('div', { 
+                                        className: 'bg-gray-800 p-4 rounded-lg shadow-md space-y-3',
+                                        key: 'cpot'
+                                    }, [
+                                        React.createElement('h3', { 
+                                            className: 'text-lg font-semibold text-purple-400',
+                                            key: 'title'
+                                        }, 'Escala CPOT'),
+                                        React.createElement('div', { 
+                                            className: 'text-center pt-2 border-t border-gray-600',
+                                            key: 'total'
+                                        }, [
+                                            React.createElement('div', { 
+                                                className: 'text-2xl font-bold text-white mb-2',
+                                                key: 'score'
+                                            }, `CPOT Total: ${cpotTotal}/8`),
+                                            React.createElement('div', { 
+                                                className: `text-lg font-semibold ${
+                                                    cpotTotal <= 2 ? 'text-green-400' :
+                                                    cpotTotal <= 4 ? 'text-yellow-400' :
+                                                    'text-red-400'
+                                                }`,
+                                                key: 'interpretation'
+                                            }, 
+                                                cpotTotal <= 2 ? '✅ Analgesia Adequada' :
+                                                cpotTotal <= 4 ? '⚠️ Dor Leve' :
+                                                '🚨 Dor Significativa'
+                                            )
+                                        ])
+                                    ]),
+
+                                    // RASS Score
+                                    React.createElement('div', { 
+                                        className: 'bg-gray-800 p-4 rounded-lg shadow-md space-y-3',
+                                        key: 'rass'
+                                    }, [
+                                        React.createElement('h3', { 
+                                            className: 'text-lg font-semibold text-purple-400',
+                                            key: 'title'
+                                        }, 'Escala RASS'),
+                                        React.createElement('div', { 
+                                            className: 'text-center pt-2 border-t border-gray-600',
+                                            key: 'current'
+                                        }, [
+                                            React.createElement('div', { 
+                                                className: 'text-2xl font-bold text-white mb-2',
+                                                key: 'score'
+                                            }, `RASS: ${rassAtual >= 0 ? '+' : ''}${rassAtual}`),
+                                            React.createElement('div', { 
+                                                className: `text-lg font-semibold ${
+                                                    rassAtual >= -1 && rassAtual <= 0 ? 'text-green-400' :
+                                                    rassAtual > 0 ? 'text-red-400' :
+                                                    'text-yellow-400'
+                                                }`,
+                                                key: 'interpretation'
+                                            }, 
+                                                rassAtual >= -1 && rassAtual <= 0 ? '✅ Meta Atingida' :
+                                                rassAtual > 0 ? '⚠️ Agitação' :
+                                                '📉 Sedação Excessiva'
+                                            )
+                                        ])
+                                    ])
+                                ]),
+
+                                // Observações
+                                React.createElement('div', { 
+                                    className: 'xl:col-span-2 bg-gray-800 p-4 rounded-lg shadow-md',
+                                    key: 'observacoes'
+                                }, [
+                                    React.createElement('h3', { 
+                                        className: 'text-lg font-semibold text-purple-400 mb-3',
+                                        key: 'title'
+                                    }, '📝 Observações sobre Sedação/Analgesia'),
+                                    React.createElement('textarea', {
+                                        rows: 4,
+                                        value: activePatient.observacoes_sedacao || '',
+                                        onChange: (e) => handleUpdatePatient({ observacoes_sedacao: e.target.value }),
+                                        className: 'form-input bg-gray-700 border border-gray-600 text-gray-300 rounded-md transition-colors duration-200 w-full p-2 focus:outline-none focus:border-purple-600 focus:ring-2 focus:ring-purple-600/50',
+                                        placeholder: 'Observações sobre ajustes de sedação, resposta do paciente, eventos adversos, planos de desmame...',
+                                        key: 'textarea'
+                                    })
+                                ])
+                            ]);
+
+                        default:
+                            return React.createElement('div', { className: 'text-center text-gray-400' }, 
+                                `Conteúdo da aba ${activeTab} em desenvolvimento...`
+                            );
+                    }
+                };
+
+                return React.createElement('main', { className: 'w-3/4 h-full p-6 overflow-y-auto flex flex-col' }, [
+                    // Header do paciente
+                    React.createElement('div', { className: 'flex justify-between items-start mb-4', key: 'patient-header' }, [
+                        React.createElement('div', { key: 'info' }, [
+                            React.createElement('h2', { 
+                                className: 'text-3xl font-bold text-white cursor-pointer hover:text-purple-400 transition-colors',
+                                onClick: () => setIsModalOpen(true),
+                                title: 'Clique para editar dados do paciente',
+                                key: 'name'
+                            }, `${activePatient.bed} - ${activePatient.name}, ${activePatient.age} anos, ${activePatient.gender}`),
+                            React.createElement('p', { 
+                                className: 'text-gray-400',
+                                key: 'diagnosis'
+                            }, `Diagnóstico Principal: ${activePatient.mainDiagnosis}`)
+                        ]),
+                        React.createElement('div', { className: 'text-right flex-shrink-0', key: 'dates' }, [
+                            React.createElement('p', { className: 'text-sm text-gray-400', key: 'admission' }, [
+                                'Admissão: ',
+                                React.createElement('span', { className: 'font-semibold text-gray-300' }, admissionDateFormatted)
+                            ]),
+                            React.createElement('p', { className: 'text-sm text-gray-400', key: 'icu-day' }, [
+                                'Dia de UTI: ',
+                                React.createElement('span', { className: 'font-semibold text-gray-300' }, activePatient.icuDay)
+                            ])
+                        ])
+                    ]),
+
+                    // Navegação por tabs
+                    React.createElement('div', { className: 'border-b border-gray-700 mb-6', key: 'tabs-nav' }, 
+                        React.createElement('nav', { className: 'flex space-x-8 -mb-px' }, [
+                            React.createElement(TabButton, { label: 'Resumo', icon: '📄', tabKey: Tab.Resumo, activeTab, onClick: setActiveTab, key: 'resumo' }),
+                            React.createElement(TabButton, { label: 'Sistemas', icon: '🏥', tabKey: Tab.Sistemas, activeTab, onClick: setActiveTab, key: 'sistemas' }),
+                            React.createElement(TabButton, { label: 'VM', icon: '🫁', tabKey: Tab.VM, activeTab, onClick: setActiveTab, key: 'vm' }),
+                            React.createElement(TabButton, { label: 'Scores', icon: '📊', tabKey: Tab.Scores, activeTab, onClick: setActiveTab, key: 'scores' }),
+                            React.createElement(TabButton, { label: 'Balanço', icon: '💧', tabKey: Tab.Balanco, activeTab, onClick: setActiveTab, key: 'balanco' }),
+                            React.createElement(TabButton, { label: 'Plano', icon: '📋', tabKey: Tab.Plano, activeTab, onClick: setActiveTab, key: 'plano' }),
+                            React.createElement(TabButton, { label: 'Sedação', icon: '🧠', tabKey: Tab.Sedacao, activeTab, onClick: setActiveTab, key: 'sedacao' }),
+                            React.createElement(TabButton, { label: 'IA-Intensivista', icon: '🤖', tabKey: Tab.IA, activeTab, onClick: setActiveTab, isGradient: true, key: 'ia' })
+                        ])
+                    ),
+
+                    // Conteúdo da aba
+                    React.createElement('div', { className: 'flex-grow', key: 'tab-content' }, renderTabContent())
+                ]);
+            };
+
+            return React.createElement('div', { className: 'flex h-screen overflow-hidden bg-gray-900 text-gray-300' }, [
+                React.createElement(Sidebar, { key: 'sidebar' }),
+                React.createElement(MainContent, { key: 'main' })
+            ]);
+        }
+
+        // Renderizar a aplicação
+        function renderApp() {
+            const rootElement = document.getElementById('root');
+            if (!rootElement) {
+                console.error('Elemento root não encontrado!');
+                return;
+            }
+
+            // Ocultar loading screen
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden');
+                }, 1000);
+            }
+
+            const root = ReactDOM.createRoot(rootElement);
+            root.render(React.createElement(UTIAIApp));
+        }
+
+        // Aguardar carregamento e renderizar
+        window.addEventListener('load', () => {
+            setTimeout(renderApp, 500);
+        });
+
+        // Fallback se window.load já passou
+        if (document.readyState === 'complete') {
+            setTimeout(renderApp, 500);
+        }
+    </script>
+    
+    <!-- Registro do Service Worker (desabilitado temporariamente) -->
+    <script>
+        // Service Worker desabilitado para evitar problemas de cache durante desenvolvimento
+        console.log('[UTI.AI] Modo desenvolvimento - Service Worker desabilitado');
+        
+        // PWA Install Prompt básico
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('[UTI.AI] App pode ser instalado como PWA');
+        });
+    </script>
+</body>
+</html>
