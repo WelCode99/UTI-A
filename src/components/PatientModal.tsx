@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import type { Patient } from '../types';
+import type { Patient } from '../types/types';
 import { FormInput, FormSelect } from './FormControls';
 
 interface PatientModalProps {

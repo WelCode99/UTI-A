@@ -1,5 +1,5 @@
 import React from 'react';
-import type { PatientDatabase, Patient } from '../types';
+import type { PatientDatabase, Patient } from '../types/types';
 
 interface SidebarProps {
     patients: PatientDatabase;

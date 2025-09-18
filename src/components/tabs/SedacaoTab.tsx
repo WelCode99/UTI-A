@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import type { Patient, CPOTScore, CalculoDose, AlertaSeguranca } from '../../types';
-import { RASS_SCALE, CPOT_PARAMETERS, MEDICAMENTOS_DISPONIVEIS } from '../../types';
+import type { Patient, CPOTScore, CalculoDose, AlertaSeguranca } from '../../types/types';
+import { RASS_SCALE, CPOT_PARAMETERS, MEDICAMENTOS_DISPONIVEIS } from '../../utils/constants';
 import { FormInput, FormSelect, FormTextarea } from '../FormControls';
 import { ScoreCard } from '../ScoreCard';
 

@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
-import type { Patient } from '../types';
-import { Tab } from '../types';
+import type { Patient } from '../types/types';
+import { Tab } from '../types/types';
 import { ResumoTab, SistemasTab, VmTab, ScoresTab, BalancoTab, PlanoTab, SedacaoTab, IaIntensivistaTab } from './tabs';
 
 interface MainContentProps {
