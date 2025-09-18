@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import type { Patient, PatientDatabase } from './types';
-import { INITIAL_PATIENTS, BLANK_PATIENT } from './constants';
+import type { Patient, PatientDatabase } from './types/types';
+import { INITIAL_PATIENTS, BLANK_PATIENT } from './utils/constants';
 import { Sidebar } from './components/Sidebar';
 import { MainContent } from './components/MainContent';
 import { PatientModal } from './components/PatientModal';

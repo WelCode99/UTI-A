@@ -1,14 +1,38 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    visualizer({
+      filename: 'dist/stats.html',
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
+    })
+  ],
   server: {
     port: 3000,
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
+    target: 'es2020',
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'google-ai': ['@google/generative-ai'],
+          'lucide': ['lucide-react'],
+          'react-vendor': ['react', 'react-dom']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
   },
+  esbuild: {
+    target: 'es2020'
+  }
 })
